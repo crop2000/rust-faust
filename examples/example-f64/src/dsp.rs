@@ -3,8 +3,8 @@ author: "Franz Heinzmann"
 license: "BSD"
 name: "volumecontrol"
 version: "1.0"
-Code generated with Faust 2.74.6 (https://faust.grame.fr)
-Compilation options: -a /tmp/.tmpGIYU35 -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0
+Code generated with Faust 2.75.8 (https://faust.grame.fr)
+Compilation options: -a /tmp/.tmpcx1oeG -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0
 ------------------------------------------------------------ */
 mod dsp {
     #![allow(clippy::all)]
@@ -70,8 +70,8 @@ impl FaustDsp for Volume {
 		m.declare("author", r"Franz Heinzmann");
 		m.declare("basics.lib/name", r"Faust Basic Element Library");
 		m.declare("basics.lib/tabulateNd", r"Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>");
-		m.declare("basics.lib/version", r"1.18.0");
-		m.declare("compile_options", r"-a /tmp/.tmpGIYU35 -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0");
+		m.declare("basics.lib/version", r"1.19.1");
+		m.declare("compile_options", r"-a /tmp/.tmpcx1oeG -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0");
 		m.declare("filename", r"volume.dsp");
 		m.declare("license", r"BSD");
 		m.declare("maths.lib/author", r"GRAME");
@@ -84,7 +84,7 @@ impl FaustDsp for Volume {
 		m.declare("platform.lib/name", r"Generic Platform Library");
 		m.declare("platform.lib/version", r"1.3.0");
 		m.declare("signals.lib/name", r"Faust Signal Routing Library");
-		m.declare("signals.lib/version", r"1.5.0");
+		m.declare("signals.lib/version", r"1.6.0");
 		m.declare("version", r"1.0");
 	}
 
@@ -159,7 +159,10 @@ impl FaustDsp for Volume {
 		}
 	}
 	
-	fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]) {
+	type I<'a> = & 'a [& 'a [Self::T] ; 2];
+	type O<'a> = & 'a mut [& 'a mut [Self::T] ; 2];
+	fn compute<'a>(&mut self, count: i32, inputs: & 'a [& 'a [Self::T] ; 2], outputs: & 'a mut[& 'a mut[Self::T] ; 2]) {
+		
 		let (inputs0, inputs1) = if let [inputs0, inputs1, ..] = inputs {
 			let inputs0 = inputs0[..count as usize].iter();
 			let inputs1 = inputs1[..count as usize].iter();

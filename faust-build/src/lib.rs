@@ -82,7 +82,7 @@ impl FaustBuilder {
         fs::write(template_file.path(), template_code).expect("failed writing temporary file");
 
         // faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
-        let mut output = Command::new("faust");
+        let mut output = Command::new("/home/olaf/projects/rust/forks/faust/build/bin/faust");
 
         let struct_name = match &self.struct_name {
             Some(struct_name) => struct_name.clone(),
@@ -102,6 +102,8 @@ impl FaustBuilder {
             .arg(template_file.path())
             .arg("-lang")
             .arg("rust")
+            .arg("-I")
+            .arg("/home/olaf/projects/rust/forks/faust/libraries/")
             .arg("-t")
             .arg("0")
             .arg("-cn")
