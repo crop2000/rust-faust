@@ -34,8 +34,8 @@ pub trait FaustDsp {
         Self: Sized;
     fn metadata(&self, m: &mut dyn Meta);
     fn get_sample_rate(&self) -> i32;
-    fn get_num_inputs(&self) -> i32;
-    fn get_num_outputs(&self) -> i32;
+    // fn get_num_inputs(&self) -> i32;
+    // fn get_num_outputs(&self) -> i32;
     fn class_init(sample_rate: i32)
     where
         Self: Sized;
