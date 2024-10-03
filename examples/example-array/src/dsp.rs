@@ -203,10 +203,10 @@ pub mod dsp {
         }
     }
 
-    pub const FAUST_INPUTS: i32 = 2;
-    pub const FAUST_OUTPUTS: i32 = 2;
-    pub const FAUST_ACTIVES: i32 = 1;
-    pub const FAUST_PASSIVES: i32 = 1;
+    pub const FAUST_INPUTS: usize = 2;
+    pub const FAUST_OUTPUTS: usize = 2;
+    pub const FAUST_ACTIVES: usize = 1;
+    pub const FAUST_PASSIVES: usize = 1;
 }
 
 pub use dsp::Volume;
