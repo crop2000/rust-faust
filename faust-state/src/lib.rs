@@ -68,11 +68,11 @@ where
         (this, state_handle)
     }
 
-    pub fn update_and_compute(
+    pub fn update_and_compute<'a>(
         &mut self,
         count: i32,
-        inputs: &[&[f32]],
-        outputs: &mut [&mut [f32]],
+        inputs: &'a [&[f32]],
+        outputs: &'a mut [&'a mut [f32]],
     ) {
         let mut state = if let Ok(state) = self.dsp_rx.pop() {
             self.update_params_from_state(&state);
