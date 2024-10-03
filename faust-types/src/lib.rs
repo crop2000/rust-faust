@@ -26,8 +26,6 @@ pub struct Soundfile<'a> {
 
 pub trait FaustDsp {
     type T;
-    type I<'a>; //&[&[Self::T]]
-    type O<'a>; //&mut [&mut [Self::T]]
 
     fn new() -> Self
     where
@@ -50,7 +48,16 @@ pub trait FaustDsp {
         Self: Sized;
     fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    fn compute<'a>(&mut self, count: i32, inputs: Self::I<'a>, outputs: Self::O<'a>);
+    fn compute<'a>(
+        &mut self,
+        count: i32,
+        inputs: &'a [&'a [Self::T]],
+        outputs: &'a mut [&'a mut [Self::T]],
+    );
+
+    type I<'a>;
+    type O<'a>;
+    fn compute_arrays<'a>(&mut self, count: i32, inputs: Self::I<'a>, outputs: Self::O<'a>);
 
     // NOTE:
     // these seem to be created by the faust codegen,

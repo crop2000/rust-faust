@@ -21,8 +21,10 @@ fn main() {
     let mut ov1 = vec![0.0f32; 4];
     let mut ov2 = vec![0.0f32; 4];
     let mut outputs = [ov1.as_mut_slice(), ov2.as_mut_slice()];
-    // dsp.compute(4, &too_few_inputs, &mut outputs);//fails to compile
-    dsp.compute(4, &inputs, &mut outputs);
+    // dsp.compute(4, &too_few_inputs, &mut outputs); //ok
+    // dsp.compute_arrays(4, &too_few_inputs, &mut outputs); //fails to compile
+
+    dsp.compute_arrays(4, &inputs, &mut outputs);
 
     run_dsp_as_jack_client(dsp);
 }
@@ -34,8 +36,11 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
     let output_indexes = [2, 3];
     // i use this example because i thought about the benefits of [&[]] vs using a slice for io.
     // the benefit is that references to abritary arrays can be used.
-    let (client, in_ports, mut out_ports) =
-        create_jack_client("ArrayTest", dsp::dsp::num_inputs, dsp::dsp::num_outputs + 2);
+    let (client, in_ports, mut out_ports) = create_jack_client(
+        "ArrayTest",
+        dsp::dsp::FAUST_INPUTS as usize,
+        dsp::dsp::FAUST_OUTPUTS as usize + 2,
+    );
 
     // Init DSP with a given sample rate
     dsp.init(client.sample_rate() as i32);
@@ -56,16 +61,17 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
         dsp.set_param(ParamIndex(1), volume);
 
         // the following buffer gymnastics is not what the example is about
-        for index_port in 0..dsp::dsp::num_inputs {
+        for index_port in 0..dsp::dsp::FAUST_INPUTS as usize {
             let port = in_ports[index_port].as_slice(ps);
             all_buffers[index_port][0..len as usize].copy_from_slice(port);
         }
 
-        let mut outputs: [&mut [f32]; dsp::dsp::num_inputs] = output_indexes.map(|i| unsafe {
-            slice::from_raw_parts_mut(all_buffers[i].as_mut_ptr(), buffer_size)
-        });
+        let mut outputs: [&mut [f32]; dsp::dsp::FAUST_OUTPUTS as usize] =
+            output_indexes.map(|i| unsafe {
+                slice::from_raw_parts_mut(all_buffers[i].as_mut_ptr(), buffer_size)
+            });
 
-        let inputs: [&[f32]; dsp::dsp::num_inputs] = input_indexes
+        let inputs: [&[f32]; dsp::dsp::FAUST_INPUTS as usize] = input_indexes
             .iter()
             .map(|i| all_buffers[*i].as_slice())
             .collect::<Vec<&[f32]>>()
@@ -84,7 +90,7 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
         dsp.compute(len as i32, &inputs, &mut outputs);
 
         // Copy audio output for all ports from faust to the jack output
-        for index_port in 0..dsp::dsp::num_outputs + 2 {
+        for index_port in 0..dsp::dsp::FAUST_OUTPUTS as usize + 2 {
             let port = out_ports[index_port].as_mut_slice(ps);
             port.copy_from_slice(&all_buffers[index_port][0..len as usize]);
         }

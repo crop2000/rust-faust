@@ -1,5 +1,5 @@
 [package]
-name = "example-f64"
+name = "example-array"
 version = "0.1.0"
 edition = "2021"
 

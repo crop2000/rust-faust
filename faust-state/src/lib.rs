@@ -25,7 +25,9 @@ where
     }
 
     pub fn from_dsp(mut dsp: Box<T>) -> (Self, StateHandle) {
-        let meta = MetaBuilder::from_dsp(dsp.as_mut());
+        let mut metadata = MetaBuilder(HashMap::new());
+        dsp.metadata(&mut metadata);
+        let meta = metadata.0;
         let params = ParamsBuilder::from_dsp(dsp.as_mut());
         let name = meta
             .get("name")
@@ -171,16 +173,13 @@ where
 
     // fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     // fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut [&mut [f32]]) {
+    pub fn compute<'a>(
+        &mut self,
+        count: i32,
+        inputs: &'a [&[f32]],
+        outputs: &'a mut [&'a mut [f32]],
+    ) {
         self.dsp.compute(count, inputs, outputs)
-    }
-
-    pub fn num_inputs(&self) -> usize {
-        self.dsp.get_num_inputs() as usize
-    }
-
-    pub fn num_outputs(&self) -> usize {
-        self.dsp.get_num_outputs() as usize
     }
 
     pub fn init(&mut self, sample_rate: i32) {
@@ -278,23 +277,11 @@ impl StateHandle {
     }
 }
 
-struct MetaBuilder {
-    inner: HashMap<String, String>,
-}
-
-impl MetaBuilder {
-    fn from_dsp<T>(dsp: &dyn FaustDsp<T = T>) -> HashMap<String, String> {
-        let mut metadata = Self {
-            inner: HashMap::new(),
-        };
-        dsp.metadata(&mut metadata);
-        metadata.inner
-    }
-}
+struct MetaBuilder(HashMap<String, String>);
 
 impl faust_types::Meta for MetaBuilder {
     fn declare(&mut self, key: &str, value: &str) {
-        self.inner.insert(key.into(), value.into());
+        self.0.insert(key.into(), value.into());
     }
 }
 
