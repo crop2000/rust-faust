@@ -95,6 +95,13 @@ pub mod dsp {
             return self.fSampleRate;
         }
 
+        fn get_num_inputs(&self) -> i32 {
+            return 2;
+        }
+        fn get_num_outputs(&self) -> i32 {
+            return 2;
+        }
+
         fn class_init(sample_rate: i32) {}
         fn instance_reset_params(&mut self) {
             self.fVslider0 = 0.0;
