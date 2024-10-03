@@ -16,6 +16,8 @@ pub mod dsp {
     #![allow(unused_mut)]
     #![allow(non_upper_case_globals)]
 
+    use std::array::TryFromSliceError;
+
     use faust_types::*;
 
     mod ffi {
@@ -169,10 +171,11 @@ pub mod dsp {
             count: i32,
             inputs: &'a [&'a [Self::T]],
             outputs: &'a mut [&'a mut [Self::T]],
-        ) {
-            let ia: Self::I<'a> = inputs.try_into().unwrap();
-            let oa: Self::O<'a> = outputs.try_into().unwrap();
-            self.compute_arrays(count, ia, oa)
+        ) -> Result<(), TryFromSliceError> {
+            let ia: Self::I<'a> = inputs[..2 as usize].try_into()?;
+            let oa: Self::O<'a> = outputs.split_at_mut(2 as usize).0.try_into()?;
+            self.compute_arrays(count, ia, oa);
+            Ok(())
         }
 
         fn compute_arrays(

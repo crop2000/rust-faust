@@ -7,6 +7,8 @@
 #![allow(non_upper_case_globals)]
 
 //! Faust JACK architecture file
+use std::array::TryFromSliceError;
+
 #[cfg(feature = "jack")]
 pub use libm;
 
@@ -32,8 +34,8 @@ pub trait FaustDsp {
         Self: Sized;
     fn metadata(&self, m: &mut dyn Meta);
     fn get_sample_rate(&self) -> i32;
-    // fn get_num_inputs(&self) -> i32;
-    // fn get_num_outputs(&self) -> i32;
+    fn get_num_inputs(&self) -> i32;
+    fn get_num_outputs(&self) -> i32;
     fn class_init(sample_rate: i32)
     where
         Self: Sized;
@@ -53,7 +55,7 @@ pub trait FaustDsp {
         count: i32,
         inputs: &'a [&'a [Self::T]],
         outputs: &'a mut [&'a mut [Self::T]],
-    );
+    ) -> Result<(), TryFromSliceError>;
 
     type I<'a>;
     type O<'a>;

@@ -5,10 +5,11 @@ use jack::AudioIn;
 use jack::*;
 use rand::thread_rng;
 use rand::Rng;
+use std::array::TryFromSliceError;
 use std::io;
 pub mod dsp;
 
-fn main() {
+fn main() -> Result<(), TryFromSliceError> {
     let mut dsp = Volume::new();
     dsp.init(44_100);
     dsp.set_param(ParamIndex(0), 10.0_f32);
@@ -17,16 +18,18 @@ fn main() {
     let iv = vec![0.0f32; 4];
     let i = iv.as_slice();
     let inputs = [i, i];
+    #[allow(unused_variables)]
     let too_few_inputs = [i];
     let mut ov1 = vec![0.0f32; 4];
     let mut ov2 = vec![0.0f32; 4];
     let mut outputs = [ov1.as_mut_slice(), ov2.as_mut_slice()];
-    // dsp.compute(4, &too_few_inputs, &mut outputs); //ok
+    // dsp.compute(4, &too_few_inputs, &mut outputs)?; //ok
     // dsp.compute_arrays(4, &too_few_inputs, &mut outputs); //fails to compile
 
-    dsp.compute_arrays(4, &inputs, &mut outputs);
+    dsp.compute_arrays(4, &inputs, &mut outputs); //no to check for result
 
     run_dsp_as_jack_client(dsp);
+    Ok(())
 }
 
 pub fn run_dsp_as_jack_client(mut dsp: Volume) {
@@ -38,8 +41,8 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
     // the benefit is that references to abritary arrays can be used.
     let (client, in_ports, mut out_ports) = create_jack_client(
         "ArrayTest",
-        dsp::dsp::FAUST_INPUTS as usize,
-        dsp::dsp::FAUST_OUTPUTS as usize + 2,
+        dsp::dsp::FAUST_INPUTS,
+        dsp::dsp::FAUST_OUTPUTS + 2,
     );
 
     // Init DSP with a given sample rate
@@ -61,23 +64,23 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
         dsp.set_param(ParamIndex(1), volume);
 
         // the following buffer gymnastics is not what the example is about
-        for index_port in 0..dsp::dsp::FAUST_INPUTS as usize {
+        for index_port in 0..dsp::dsp::FAUST_INPUTS {
             let port = in_ports[index_port].as_slice(ps);
             all_buffers[index_port][0..len as usize].copy_from_slice(port);
         }
 
-        let mut outputs: [&mut [f32]; dsp::dsp::FAUST_OUTPUTS as usize] =
-            output_indexes.map(|i| unsafe {
-                slice::from_raw_parts_mut(all_buffers[i].as_mut_ptr(), buffer_size)
-            });
+        let mut outputs: [&mut [f32]; dsp::dsp::FAUST_OUTPUTS] = output_indexes.map(|i| unsafe {
+            slice::from_raw_parts_mut(all_buffers[i].as_mut_ptr(), buffer_size)
+        });
 
-        let inputs: [&[f32]; dsp::dsp::FAUST_INPUTS as usize] = input_indexes
+        let inputs: [&[f32]; dsp::dsp::FAUST_INPUTS] = input_indexes
             .iter()
             .map(|i| all_buffers[*i].as_slice())
             .collect::<Vec<&[f32]>>()
             .try_into()
             .unwrap();
 
+        #[allow(unused_variables)]
         let not_enough_inputs: [&[f32]; 1] = [4]
             .iter()
             .map(|i| all_buffers[*i].as_slice())
@@ -87,10 +90,13 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
 
         // this is what it is about inputs and outputs need to have the correct length otherwise the program doens't compile
         // dsp.compute(len as i32, &not_enough_inputs, &mut outputs);
-        dsp.compute(len as i32, &inputs, &mut outputs);
-
+        let r = dsp.compute(len as i32, &inputs, &mut outputs);
+        if let Err(m) = r {
+            println!("slice length wrong");
+            dbg!(m);
+        }
         // Copy audio output for all ports from faust to the jack output
-        for index_port in 0..dsp::dsp::FAUST_OUTPUTS as usize + 2 {
+        for index_port in 0..dsp::dsp::FAUST_OUTPUTS + 2 {
             let port = out_ports[index_port].as_mut_slice(ps);
             port.copy_from_slice(&all_buffers[index_port][0..len as usize]);
         }

@@ -1,6 +1,7 @@
 use faust_types::*;
 use rtrb::{Consumer, Producer, RingBuffer};
 use std::{
+    array::TryFromSliceError,
     collections::{BTreeMap, HashMap},
     ops::RangeInclusive,
 };
@@ -73,7 +74,7 @@ where
         count: i32,
         inputs: &'a [&[f32]],
         outputs: &'a mut [&'a mut [f32]],
-    ) {
+    ) -> Result<(), TryFromSliceError> {
         let mut state = if let Ok(state) = self.dsp_rx.pop() {
             self.update_params_from_state(&state);
             Some(state)
@@ -100,7 +101,7 @@ where
             self.set_fp_status_register(fpsr | mask);
         }
 
-        self.compute(count, inputs, outputs);
+        self.compute(count, inputs, outputs)?;
 
         // Reset fp status register to old value
         if let Some(fpsr) = fpsr {
@@ -111,7 +112,8 @@ where
             let mut state = state.take().unwrap();
             self.update_state_from_params(&mut state);
             let _ = self.dsp_tx.push(state);
-        }
+        };
+        Ok(())
     }
 
     // Gets the fp status register.
@@ -178,8 +180,9 @@ where
         count: i32,
         inputs: &'a [&[f32]],
         outputs: &'a mut [&'a mut [f32]],
-    ) {
-        self.dsp.compute(count, inputs, outputs)
+    ) -> Result<(), TryFromSliceError> {
+        self.dsp.compute(count, inputs, outputs)?;
+        Ok(())
     }
 
     pub fn init(&mut self, sample_rate: i32) {
