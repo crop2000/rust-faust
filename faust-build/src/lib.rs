@@ -104,6 +104,7 @@ impl FaustBuilder {
             .arg("rust")
             .arg("-t")
             .arg("0")
+            .arg("-uim")
             .arg("-cn")
             .arg(&struct_name);
 

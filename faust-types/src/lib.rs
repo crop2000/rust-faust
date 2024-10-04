@@ -24,6 +24,17 @@ pub struct Soundfile<'a> {
     fChannels: i32,
 }
 
+pub trait FaustDspCompute {
+    type T;
+    type I<'a>;
+    type O<'a>;
+    fn compute_arrays(
+        &mut self,
+        count: i32,
+        inputs: &[&[Self::T]; 2],
+        outputs: &mut [&mut [Self::T]; 2],
+    );
+}
 pub trait FaustDsp {
     type T;
 
