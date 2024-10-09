@@ -4,7 +4,6 @@ declare author      "Franz Heinzmann";
 declare license     "BSD";
 declare options     "[osc:on]";
 
-
 import("stdfaust.lib");
 
 stereo(func) = _,_ : func(_),func(_) : _,_;

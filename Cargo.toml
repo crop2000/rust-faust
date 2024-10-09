@@ -4,6 +4,7 @@ members = [
   "faust-build", 
   "faust-types", 
   "faust-state",
+  "examples/example-array",
   "examples/example-jack",
   "examples/example-jack-macro",
   "examples/example-dbmeter-jack", 

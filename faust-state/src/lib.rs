@@ -7,26 +7,28 @@ use std::{
 
 const DEFAULT_NAME: &str = "rust_faust";
 
-#[derive(Debug)]
-pub struct DspHandle<T> {
-    dsp: Box<T>,
+// #[derive(Debug)]
+pub struct DspHandle {
+    dsp: Box<dyn HasCompute<T = F32>>,
     dsp_tx: Producer<State>,
     dsp_rx: Consumer<State>,
     name: String,
 }
 
-impl<T> DspHandle<T>
-where
-    T: FaustDsp<T = f32> + 'static,
-{
-    pub fn new() -> (Self, StateHandle) {
-        let dsp = Box::new(T::new());
-        Self::from_dsp(dsp)
-    }
+impl DspHandle {
+    pub fn from_dsp<T>(dsp: Box<T>) -> (Self, StateHandle)
+    where
+        T: HasMeta + HasParam + HasCompute<T = f32> + 'static,
+        ParamsBuilder: faust_types::UI<<T as faust_types::HasParam>::T>,
+    {
+        let mut metadata = MetaBuilder::default();
+        dsp.metadata(&mut metadata);
+        let meta = metadata.inner;
 
-    pub fn from_dsp(mut dsp: Box<T>) -> (Self, StateHandle) {
-        let meta = MetaBuilder::from_dsp(dsp.as_mut());
-        let params = ParamsBuilder::from_dsp(dsp.as_mut());
+        let mut builder = ParamsBuilder::new();
+        dsp.build_user_interface(&mut builder);
+        let params = builder.inner;
+
         let name = meta
             .get("name")
             .map_or(DEFAULT_NAME, String::as_str)
@@ -278,19 +280,20 @@ impl StateHandle {
     }
 }
 
+#[derive(Default)]
 struct MetaBuilder {
     inner: HashMap<String, String>,
 }
 
-impl MetaBuilder {
-    fn from_dsp<T>(dsp: &dyn FaustDsp<T = T>) -> HashMap<String, String> {
-        let mut metadata = Self {
-            inner: HashMap::new(),
-        };
-        dsp.metadata(&mut metadata);
-        metadata.inner
-    }
-}
+// impl MetaBuilder {
+//     fn from_dsp<T>(dsp: &dyn FaustDsp<T = T>) -> HashMap<String, String> {
+//         let mut metadata = Self {
+//             inner: HashMap::new(),
+//         };
+//         dsp.metadata(&mut metadata);
+//         metadata.inner
+//     }
+// }
 
 impl faust_types::Meta for MetaBuilder {
     fn declare(&mut self, key: &str, value: &str) {
@@ -418,19 +421,19 @@ impl ParamsBuilder {
     fn new() -> Self {
         Self {
             inner: HashMap::new(),
-            first_group: true,
             prefix: Vec::new(),
+            first_group: true,
             // state: Vec::new(),
         }
     }
-    fn from_dsp<D>(dsp: &mut D) -> HashMap<i32, Node>
-    where
-        D: FaustDsp<T = f32>,
-    {
-        let mut builder = Self::new();
-        dsp.build_user_interface(&mut builder);
-        builder.inner
-    }
+    // fn from_dsp<D>(dsp: &mut D) -> HashMap<i32, Node>
+    // where
+    //     D: FaustDsp<T = f32>,
+    // {
+    //     let mut builder = Self::new();
+    //     dsp.build_user_interface(&mut builder);
+    //     builder.inner
+    // }
 
     fn open_group(&mut self, label: &str) {
         if self.first_group {

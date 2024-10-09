@@ -48,8 +48,8 @@ impl FaustBuilder {
         }
     }
 
-    pub fn set_struct_name(mut self, struct_name: Option<String>) -> Self {
-        self.struct_name = struct_name;
+    pub fn set_struct_name(mut self, struct_name: String) -> Self {
+        self.struct_name = Some(struct_name);
         self
     }
     pub fn set_module_name(mut self, module_name: String) -> Self {
@@ -82,7 +82,7 @@ impl FaustBuilder {
         fs::write(template_file.path(), template_code).expect("failed writing temporary file");
 
         // faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
-        let mut output = Command::new("faust");
+        let mut output = Command::new("/home/olaf/projects/rust/forks/faust/build/bin/faust");
 
         let struct_name = match &self.struct_name {
             Some(struct_name) => struct_name.clone(),
@@ -102,6 +102,8 @@ impl FaustBuilder {
             .arg(template_file.path())
             .arg("-lang")
             .arg("rust")
+            .arg("-I")
+            .arg("/home/olaf/projects/rust/forks/faust/libraries/")
             .arg("-t")
             .arg("0")
             .arg("-uim")
@@ -134,6 +136,11 @@ impl FaustBuilder {
         let dsp_code = String::from_utf8(dsp_code).unwrap();
         let dsp_code = dsp_code.replace("<<moduleName>>", &self.module_name);
         let dsp_code = dsp_code.replace("<<structName>>", &struct_name);
+        let dsp_code = if self.use_double {
+            dsp_code.replace("<<bitDepth>>", "F64")
+        } else {
+            dsp_code.replace("<<bitDepth>>", "F32")
+        };
 
         fs::write(&dest_path, dsp_code).expect("failed to write to destination path");
 

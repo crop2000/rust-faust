@@ -4,10 +4,7 @@ use jack::AudioIn;
 use jack::*;
 use std::{io, slice};
 
-pub fn run_dsp_as_jack_client<T>(mut dsp: DspHandle<T>)
-where
-    T: FaustDsp<T = f32> + 'static + Send,
-{
+pub fn run_dsp_as_jack_client(mut dsp: DspHandle) {
     // Get number of inputs and ouputs
     let num_inputs = dsp.num_inputs();
     let num_outputs = dsp.num_inputs();

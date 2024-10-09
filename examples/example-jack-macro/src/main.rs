@@ -29,7 +29,9 @@ faust_macro::faust!(
 );
 
 fn main() {
-    let (dsp, mut state) = DspHandle::<VolumeControl>::new();
+    let v = VolumeControl::new();
+
+    let (dsp, mut state) = DspHandle::from_dsp(Box::new(v));
     eprintln!("client name: {}", dsp.name());
     eprintln!("inputs: {}", dsp.num_inputs());
     eprintln!("outputs: {}", dsp.num_outputs());

@@ -1,6 +1,6 @@
 use std::{thread, time::Duration};
 mod dsp;
-use dsp::Volume;
+use dsp::dsp_volume::JVolume;
 use faust_state::DspHandle;
 use jack_utils::run_dsp_as_jack_client;
 
@@ -9,7 +9,8 @@ use jack_utils::run_dsp_as_jack_client;
 // }
 
 fn main() {
-    let (dsp, mut state) = DspHandle::<Volume>::new();
+    let volume = JVolume::new();
+    let (dsp, mut state) = DspHandle::from_dsp(Box::new(volume));
     eprintln!("client name: {}", dsp.name());
     eprintln!("inputs: {}", dsp.num_inputs());
     eprintln!("outputs: {}", dsp.num_outputs());

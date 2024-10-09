@@ -9,77 +9,56 @@ pub mod <<moduleName>> {
     #![allow(unused_variables)]
     #![allow(unused_mut)]
     #![allow(non_upper_case_globals)]
-    
+    use faust_types::*;
+
     <<includeIntrinsic>>
     <<includeclass>>
 }
 
-impl FaustDsp for <<moduleName>>::<<structName>> {
-    type T = T;
 
-    fn new() -> Self {
-        Self::new()
-    }
+pub use <<moduleName>>::<<structName>>;
 
+impl HasMeta for <<structName>> {
     fn metadata(&self, m: &mut dyn Meta) {
-        Self::metadata(self, m)
-    }
-
-    fn get_sample_rate(&self) -> i32 {
-        Self::get_sample_rate(self)
-    }
-
-    fn get_num_inputs(&self) -> i32 {
-        Self::get_num_inputs(self)
-    }
-
-    fn get_num_outputs(&self) -> i32 {
-        Self::get_num_outputs(self)
-    }
-
-    fn class_init(sample_rate: i32) {
-        Self::class_init(sample_rate)
-    }
-
-    fn instance_reset_params(&mut self) {
-        Self::instance_reset_params(self)
-    }
-
-    fn instance_clear(&mut self) {
-        Self::instance_clear(self)
-    }
-
-    fn instance_constants(&mut self, sample_rate: i32) {
-        Self::instance_constants(self, sample_rate)
-    }
-
-    fn instance_init(&mut self, sample_rate: i32) {
-        Self::init(self, sample_rate)
-    }
-
-    fn init(&mut self, sample_rate: i32) {
-        Self::init(self, sample_rate)
-    }
-
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
-        Self::build_user_interface(self, ui_interface)
-    }
-
-    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) {
-        Self::build_user_interface_static(ui_interface)
-    }
-
-    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
-        Self::get_param(self, param)
-    }
-
-    fn set_param(&mut self, param: ParamIndex, value: Self::T) {
-        Self::set_param(self, param, value)
-    }
-
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
-        Self::compute(self, count, inputs, outputs)
+        self.metadata(m)
     }
 }
 
-pub use <<moduleName>>::<<structName>>;
+impl HasParam for <<structName>> {
+    type T = <<bitDepth>>;
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
+        self.build_user_interface(ui_interface)
+    }
+}
+
+impl HasCompute for <<structName>> {
+    type T = <<bitDepth>>;
+
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
+        self.get_param(param)
+    }
+
+    fn set_param(&mut self, param: ParamIndex, value: Self::T) {
+        self.set_param(param, value)
+    }
+
+    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
+        self.compute(count, inputs, outputs)
+    }
+
+    fn get_sample_rate(&self) -> i32 {
+        self.get_sample_rate()
+    }
+
+    fn get_num_inputs(&self) -> i32 {
+        self.get_num_inputs()
+    }
+
+    fn get_num_outputs(&self) -> i32 {
+        self.get_num_outputs()
+    }
+
+    fn init(&mut self, sample_rate: i32) {
+        self.init(sample_rate)
+    }
+}
