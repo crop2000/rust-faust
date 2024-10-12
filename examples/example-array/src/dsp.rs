@@ -4,10 +4,8 @@ license: "BSD"
 name: "volumecontrol"
 version: "1.0"
 Code generated with Faust 2.75.10 (https://faust.grame.fr)
-Compilation options: -a /tmp/.tmpGHcnOm -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -uim -single -ftz 0
+Compilation options: -a /tmp/.tmpEQkbRY -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -uim -single -ftz 0
 ------------------------------------------------------------ */
-use faust_types::*;
-
 pub mod dsp {
     #![allow(clippy::all)]
     #![allow(unused_parens)]
@@ -19,6 +17,7 @@ pub mod dsp {
     #![allow(non_upper_case_globals)]
     use faust_types::*;
 
+    pub type FaustFloat = F32;
     use std::convert::TryInto;
     mod ffi {
         use std::os::raw::c_float;
@@ -55,8 +54,8 @@ pub mod dsp {
         pub fn compute_arrays(
             &mut self,
             count: i32,
-            inputs: &[&[F32]; 2],
-            outputs: &mut [&mut [F32]; 2],
+            inputs: &[&[FaustFloat]; 2],
+            outputs: &mut [&mut [FaustFloat]; 2],
         ) {
             let [inputs0, inputs1] = inputs;
             let inputs0 = inputs0[..count as usize].iter();
@@ -108,7 +107,7 @@ pub mod dsp {
                 r"Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>",
             );
             m.declare("basics.lib/version", r"1.19.1");
-            m.declare("compile_options", r"-a /tmp/.tmpGHcnOm -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -uim -single -ftz 0");
+            m.declare("compile_options", r"-a /tmp/.tmpEQkbRY -lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -uim -single -ftz 0");
             m.declare("filename", r"volume.dsp");
             m.declare("license", r"BSD");
             m.declare("maths.lib/author", r"GRAME");
@@ -165,11 +164,11 @@ pub mod dsp {
             self.instance_init(sample_rate);
         }
 
-        pub fn build_user_interface(&self, ui_interface: &mut dyn UI<F32>) {
+        pub fn build_user_interface(&self, ui_interface: &mut dyn UI<FaustFloat>) {
             Self::build_user_interface_static(ui_interface);
         }
 
-        pub fn build_user_interface_static(ui_interface: &mut dyn UI<F32>) {
+        pub fn build_user_interface_static(ui_interface: &mut dyn UI<FaustFloat>) {
             ui_interface.open_vertical_box("volumecontrol");
             ui_interface.declare(Some(ParamIndex(0)), "2", "");
             ui_interface.declare(Some(ParamIndex(0)), "style", "dB");
@@ -179,7 +178,7 @@ pub mod dsp {
             ui_interface.close_box();
         }
 
-        pub fn get_param(&self, param: ParamIndex) -> Option<F32> {
+        pub fn get_param(&self, param: ParamIndex) -> Option<FaustFloat> {
             match param.0 {
                 0 => Some(self.fVbargraph0),
                 1 => Some(self.fVslider0),
@@ -187,7 +186,7 @@ pub mod dsp {
             }
         }
 
-        pub fn set_param(&mut self, param: ParamIndex, value: F32) {
+        pub fn set_param(&mut self, param: ParamIndex, value: FaustFloat) {
             match param.0 {
                 0 => self.fVbargraph0 = value,
                 1 => self.fVslider0 = value,
@@ -195,7 +194,12 @@ pub mod dsp {
             }
         }
 
-        pub fn compute(&mut self, count: i32, inputs: &[&[F32]], outputs: &mut [&mut [F32]]) {
+        pub fn compute(
+            &mut self,
+            count: i32,
+            inputs: &[&[FaustFloat]],
+            outputs: &mut [&mut [FaustFloat]],
+        ) {
             let input_array = inputs
                 .split_at(2)
                 .0
@@ -214,51 +218,51 @@ pub mod dsp {
     pub const FAUST_OUTPUTS: usize = 2;
     pub const FAUST_ACTIVES: usize = 1;
     pub const FAUST_PASSIVES: usize = 1;
+
+    impl HasMeta for Volume {
+        fn metadata(&self, m: &mut dyn Meta) {
+            self.metadata(m)
+        }
+    }
+
+    impl HasParam for Volume {
+        type T = FaustFloat;
+        fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
+            self.build_user_interface(ui_interface)
+        }
+    }
+
+    impl HasCompute for Volume {
+        type T = FaustFloat;
+
+        fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
+            self.get_param(param)
+        }
+
+        fn set_param(&mut self, param: ParamIndex, value: Self::T) {
+            self.set_param(param, value)
+        }
+
+        fn compute(&mut self, count: usize, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
+            self.compute(count as i32, inputs, outputs)
+        }
+
+        fn get_sample_rate(&self) -> i32 {
+            self.get_sample_rate()
+        }
+
+        fn get_num_inputs(&self) -> i32 {
+            self.get_num_inputs()
+        }
+
+        fn get_num_outputs(&self) -> i32 {
+            self.get_num_outputs()
+        }
+
+        fn init(&mut self, sample_rate: i32) {
+            self.init(sample_rate)
+        }
+    }
 }
 
 pub use dsp::Volume;
-
-impl HasMeta for Volume {
-    fn metadata(&self, m: &mut dyn Meta) {
-        self.metadata(m)
-    }
-}
-
-impl HasParam for Volume {
-    type T = F32;
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
-        self.build_user_interface(ui_interface)
-    }
-}
-
-impl HasCompute for Volume {
-    type T = F32;
-
-    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
-        self.get_param(param)
-    }
-
-    fn set_param(&mut self, param: ParamIndex, value: Self::T) {
-        self.set_param(param, value)
-    }
-
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
-        self.compute(count, inputs, outputs)
-    }
-
-    fn get_sample_rate(&self) -> i32 {
-        self.get_sample_rate()
-    }
-
-    fn get_num_inputs(&self) -> i32 {
-        self.get_num_inputs()
-    }
-
-    fn get_num_outputs(&self) -> i32 {
-        self.get_num_outputs()
-    }
-
-    fn init(&mut self, sample_rate: i32) {
-        self.init(sample_rate)
-    }
-}

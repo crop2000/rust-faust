@@ -1,5 +1,3 @@
-use faust_types::*;
-
 pub mod <<moduleName>> {
     #![allow(clippy::all)]
     #![allow(unused_parens)]
@@ -13,52 +11,52 @@ pub mod <<moduleName>> {
 
     <<includeIntrinsic>>
     <<includeclass>>
-}
 
+    impl HasMeta for <<structName>> {
+        fn metadata(&self, m: &mut dyn Meta) {
+            self.metadata(m)
+        }
+    }
+
+    impl HasParam for <<structName>> {
+        type T = FaustFloat;
+        fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
+            self.build_user_interface(ui_interface)
+        }
+    }
+
+    impl HasCompute for <<structName>> {
+        type T = FaustFloat;
+
+        fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
+            self.get_param(param)
+        }
+
+        fn set_param(&mut self, param: ParamIndex, value: Self::T) {
+            self.set_param(param, value)
+        }
+
+        fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
+            self.compute(count, inputs, outputs)
+        }
+
+        fn get_sample_rate(&self) -> i32 {
+            self.get_sample_rate()
+        }
+
+        fn get_num_inputs(&self) -> i32 {
+            self.get_num_inputs()
+        }
+
+        fn get_num_outputs(&self) -> i32 {
+            self.get_num_outputs()
+        }
+
+        fn init(&mut self, sample_rate: i32) {
+            self.init(sample_rate)
+        }
+    }
+
+}
 
 pub use <<moduleName>>::<<structName>>;
-
-impl HasMeta for <<structName>> {
-    fn metadata(&self, m: &mut dyn Meta) {
-        self.metadata(m)
-    }
-}
-
-impl HasParam for <<structName>> {
-    type T = <<bitDepth>>;
-    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
-        self.build_user_interface(ui_interface)
-    }
-}
-
-impl HasCompute for <<structName>> {
-    type T = <<bitDepth>>;
-
-    fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
-        self.get_param(param)
-    }
-
-    fn set_param(&mut self, param: ParamIndex, value: Self::T) {
-        self.set_param(param, value)
-    }
-
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
-        self.compute(count, inputs, outputs)
-    }
-
-    fn get_sample_rate(&self) -> i32 {
-        self.get_sample_rate()
-    }
-
-    fn get_num_inputs(&self) -> i32 {
-        self.get_num_inputs()
-    }
-
-    fn get_num_outputs(&self) -> i32 {
-        self.get_num_outputs()
-    }
-
-    fn init(&mut self, sample_rate: i32) {
-        self.init(sample_rate)
-    }
-}

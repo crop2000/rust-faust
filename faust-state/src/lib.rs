@@ -68,11 +68,11 @@ impl DspHandle {
         (this, state_handle)
     }
 
-    pub fn update_and_compute(
+    pub fn update_and_compute<'a>(
         &mut self,
         count: i32,
         inputs: &[&[f32]],
-        outputs: &mut [&mut [f32]],
+        outputs: &'a mut [&'a mut [f32]],
     ) {
         let mut state = if let Ok(state) = self.dsp_rx.pop() {
             self.update_params_from_state(&state);
@@ -173,8 +173,8 @@ impl DspHandle {
 
     // fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     // fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut [&mut [f32]]) {
-        self.dsp.compute(count, inputs, outputs)
+    pub fn compute<'a>(&mut self, count: i32, inputs: &[&[f32]], outputs: &'a mut [&'a mut [f32]]) {
+        self.dsp.compute(count as usize, inputs, outputs)
     }
 
     pub fn num_inputs(&self) -> usize {

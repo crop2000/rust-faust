@@ -1,6 +1,6 @@
 use std::{thread, time::Duration};
 mod dsp;
-use dsp::dsp_volume::JVolume;
+use dsp::JVolume;
 use faust_state::DspHandle;
 use jack_utils::run_dsp_as_jack_client;
 

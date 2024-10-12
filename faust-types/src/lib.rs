@@ -127,7 +127,12 @@ pub trait HasCompute: std::marker::Send {
     type T;
     fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
     fn set_param(&mut self, param: ParamIndex, value: Self::T);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]);
+    fn compute<'a>(
+        &mut self,
+        count: usize,
+        inputs: &[&[Self::T]],
+        outputs: &'a mut [&'a mut [Self::T]],
+    );
     fn get_sample_rate(&self) -> i32;
     fn get_num_inputs(&self) -> i32;
     fn get_num_outputs(&self) -> i32;
