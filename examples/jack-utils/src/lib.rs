@@ -27,17 +27,16 @@ pub fn run_dsp_as_jack_client(mut dsp: DspHandle) {
         .map(|input| unsafe { slice::from_raw_parts(input.as_ptr(), buffer_size) })
         .collect();
 
-    // Map our Vec<Vec<f32>> to a Vec<&f[32]> to create a buffer for the faust lib
-    let mut buffer_output: Vec<&mut [f32]> = outputs
-        .iter_mut()
-        .map(|output| unsafe { slice::from_raw_parts_mut(output.as_mut_ptr(), buffer_size) })
-        .collect();
-
     // Create JACK process closure that runs for each buffer
     let process_callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
         let len = ps.n_frames();
         assert!(len as usize <= buffer_size);
 
+        // Map our Vec<Vec<f32>> to a Vec<&f[32]> to create a buffer for the faust lib
+        let mut buffer_output: Vec<&mut [f32]> = outputs
+            .iter_mut()
+            .map(|output| unsafe { slice::from_raw_parts_mut(output.as_mut_ptr(), buffer_size) })
+            .collect();
         // Copy audio input for all ports from jack to the faust input buffer
         for index_port in 0..num_inputs {
             let port = in_ports[index_port].as_slice(ps);

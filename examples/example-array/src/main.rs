@@ -54,8 +54,8 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
     // Create JACK process closure that runs for each buffer
     let process_callback = move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
         let mut rng = thread_rng();
-        let len = ps.n_frames();
-        assert!(len as usize <= buffer_size);
+        let len = ps.n_frames() as usize;
+        assert!(len <= buffer_size);
 
         let volume: f32 = rng.gen_range(-70..0) as f32;
         eprintln!("level:  {} dB", dsp.get_param(ParamIndex(0)).unwrap());
@@ -89,7 +89,7 @@ pub fn run_dsp_as_jack_client(mut dsp: Volume) {
 
         // this is what it is about inputs and outputs need to have the correct length otherwise the program doens't compile
         // dsp.compute(len as i32, &not_enough_inputs, &mut outputs);
-        dsp.compute(len as i32, &inputs, &mut outputs);
+        dsp.compute(len, &inputs, &mut outputs);
 
         // Copy audio output for all ports from faust to the jack output
         for index_port in 0..FAUST_OUTPUTS + 2 {

@@ -52,6 +52,15 @@ fn faust_build(faust_code: String, name: String) -> TokenStream {
         .join("DEBUG_".to_owned() + &name)
         .with_extension("dsp");
 
+    let debug_json = Path::new(".")
+        .join("target")
+        .join("DEBUG_".to_owned() + &name)
+        .with_extension("json");
+    let debug_xml = Path::new(".")
+        .join("target")
+        .join("DEBUG_".to_owned() + &name)
+        .with_extension("xml");
+
     let debug_rs = Path::new(".")
         .join("target")
         .join("DEBUG_".to_owned() + &name)
@@ -77,12 +86,18 @@ fn faust_build(faust_code: String, name: String) -> TokenStream {
 
     let b = FaustBuilder::new(temp_dsp_path_str, temp_rs_path_str)
         .faust_arg("-uim".to_string())
+        .faust_arg("-json".to_string())
+        .faust_arg("-xml".to_string())
         .set_struct_name(name.clone())
         .set_module_name("dsp_".to_owned() + &name);
     b.build();
 
     if cfg!(debug_assertions) {
         fs::copy(temp_rs_path_str, debug_rs).expect("rsfile cannot be copied to target");
+        fs::copy(temp_dsp_path.with_extension("xml"), debug_xml)
+            .expect("temp xml file cannot be copied to target");
+        fs::copy(temp_dsp_path.with_extension("json"), debug_json)
+            .expect("temp xml file cannot be copied to target");
     } else {
         let _ignore_error = fs::remove_file(debug_rs);
     }

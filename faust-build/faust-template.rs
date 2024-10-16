@@ -36,20 +36,20 @@ pub mod <<moduleName>> {
             self.set_param(param, value)
         }
 
-        fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
+        fn compute(&mut self, count: usize, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
             self.compute(count, inputs, outputs)
+        }
+
+        fn get_num_inputs(&self) -> i32 {
+            FAUST_INPUTS as i32
+        }
+
+        fn get_num_outputs(&self) -> i32 {
+            FAUST_OUTPUTS as i32
         }
 
         fn get_sample_rate(&self) -> i32 {
             self.get_sample_rate()
-        }
-
-        fn get_num_inputs(&self) -> i32 {
-            self.get_num_inputs()
-        }
-
-        fn get_num_outputs(&self) -> i32 {
-            self.get_num_outputs()
         }
 
         fn init(&mut self, sample_rate: i32) {

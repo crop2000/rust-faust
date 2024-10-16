@@ -1,4 +1,4 @@
-use crate::dsp::Volume;
+use crate::dsp::VolumeControl as Volume;
 use faust_types::ParamIndex;
 pub mod dsp;
 
