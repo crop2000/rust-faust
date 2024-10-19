@@ -143,27 +143,38 @@ pub mod dsp {
     }
 
     impl Volume {
+        // this is cool but we need to somehow deal better with fSlow0
+        pub fn compute_ref(
+            &mut self,
+            input0: &f64,
+            input1: &f64,
+            output0: &mut f64,
+            output1: &mut f64,
+            fSlow0: F64,
+        ) {
+            self.fRec0[0] = fSlow0 + self.fConst2 * self.fRec0[1];
+            let mut fTemp0: F64 = *input0;
+            let mut fTemp1: F64 = *input1;
+            self.fRec1[0] = F64::max(
+                self.fRec1[1] - self.fConst3,
+                F64::abs(0.5 * self.fRec0[0] * (fTemp0 + fTemp1)),
+            );
+            self.fVbargraph0 = 2e+01
+                * F64::log10(F64::max(
+                    2.2250738585072014e-308,
+                    F64::max(0.00031622776601683794, self.fRec1[0]),
+                ));
+            *output0 = self.fConst4 + fTemp0 * self.fRec0[0];
+            *output1 = fTemp1 * self.fRec0[0];
+            self.fRec0[1] = self.fRec0[0];
+            self.fRec1[1] = self.fRec1[0];
+        }
         pub fn compute_zipped_iter(&mut self, zipped_iterators: ZippedIters) {
             //kr part
             let mut fSlow0: F64 = self.fConst1 * F64::powf(1e+01, 0.05 * self.fVslider0);
             //ar part
             for (((input0, input1), output0), output1) in zipped_iterators {
-                self.fRec0[0] = fSlow0 + self.fConst2 * self.fRec0[1];
-                let mut fTemp0: F64 = *input0;
-                let mut fTemp1: F64 = *input1;
-                self.fRec1[0] = F64::max(
-                    self.fRec1[1] - self.fConst3,
-                    F64::abs(0.5 * self.fRec0[0] * (fTemp0 + fTemp1)),
-                );
-                self.fVbargraph0 = 2e+01
-                    * F64::log10(F64::max(
-                        2.2250738585072014e-308,
-                        F64::max(0.00031622776601683794, self.fRec1[0]),
-                    ));
-                *output0 = self.fConst4 + fTemp0 * self.fRec0[0];
-                *output1 = fTemp1 * self.fRec0[0];
-                self.fRec0[1] = self.fRec0[0];
-                self.fRec1[1] = self.fRec1[0];
+                self.compute_ref(input0, input1, output0, output1, fSlow0);
             }
         }
 

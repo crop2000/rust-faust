@@ -11,7 +11,7 @@
 	<meta key="basics.lib/name">Faust Basic Element Library</meta>
 	<meta key="basics.lib/tabulateNd">Copyright (C) 2023 Bart Brouns &lt;bart@magnetophon.nl&gt;</meta>
 	<meta key="basics.lib/version">1.19.1</meta>
-	<meta key="compile_options">-a /tmp/.tmpDQURwU -lang rust -ct 1 -cn VolumeControl -es 1 -mcd 16 -mdd 1024 -mdy 33 -uim -double -ftz 0</meta>
+	<meta key="compile_options">-a /tmp/.tmpiojM9x -lang rust -ct 1 -cn VolumeControl -es 1 -mcd 16 -mdd 1024 -mdy 33 -uim -double -ftz 0</meta>
 	<meta key="filename">volume.dsp</meta>
 	<meta key="maths.lib/author">GRAME</meta>
 	<meta key="maths.lib/copyright">GRAME</meta>

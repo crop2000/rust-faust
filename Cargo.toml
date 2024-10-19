@@ -4,10 +4,12 @@ members = [
   "faust-build", 
   "faust-types", 
   "faust-state",
+  "faust-xml", 
   "examples/example-array",
   "examples/example-jack",
   "examples/example-jack-macro",
   "examples/example-dbmeter-jack", 
   "examples/example-f64", 
+  "examples/example-f64xml"
 ]
 resolver="2"
