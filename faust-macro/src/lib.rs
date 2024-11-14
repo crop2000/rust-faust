@@ -1,11 +1,10 @@
 use faust_build::FaustBuilder;
 use proc_macro::{TokenStream, TokenTree};
 use std::{
-    fs::{self, read_to_string},
+    fs::{read_to_string, File},
     io::{BufWriter, Write},
-    path::Path,
+    path::{Path, PathBuf},
 };
-use tempfile::NamedTempFile;
 
 fn strip_quotes(name: TokenTree) -> String {
     name.to_string()
@@ -37,56 +36,38 @@ fn get_name_token(ts: TokenStream) -> String {
     panic! {"name declaration is not found.\n Expect 'declare name NAMESTRING;' in faust code."};
 }
 
-fn write_temp_dsp_file(faust_code: String) -> NamedTempFile {
-    let temp_dsp = NamedTempFile::new().expect("failed creating temp dsp file");
-    let mut f = BufWriter::new(temp_dsp);
+fn write_dsp_file(path: &PathBuf, faust_code: String) {
+    let dsp = File::create(path)
+        .unwrap_or_else(|_| panic!("failed creating dsp file {}", path.to_str().unwrap()));
+    let mut f = BufWriter::new(dsp);
     f.write_all(faust_code.as_bytes())
-        .expect("Unable to write to temp dsp file");
-    f.into_inner().expect("temp dsp error on flush")
+        .expect("Unable to write to dsp file");
 }
 
 fn faust_build(faust_code: String, name: String) -> TokenStream {
     // define paths for .dsp and .rs files that help debugging
-    let debug_dsp = Path::new(".")
+    let dsp_path = Path::new(".")
         .join("target")
-        .join("DEBUG_".to_owned() + &name)
+        .join(&name)
         .with_extension("dsp");
 
-    let debug_rs = Path::new(".")
+    let rs_path = Path::new(".")
         .join("target")
-        .join("DEBUG_".to_owned() + &name)
+        .join(&name)
         .with_extension("rs");
 
-    let temp_rs = NamedTempFile::new().expect("failed creating temporary file");
+    write_dsp_file(&dsp_path, faust_code);
 
-    let temp_dsp = write_temp_dsp_file(faust_code);
-    let temp_dsp_path = temp_dsp.path();
-    let temp_dsp_path_str = temp_dsp_path
-        .to_str()
-        .expect("temp file dsp path contains non-UTF-8");
-    let temp_rs_path_str = temp_rs
-        .path()
-        .to_str()
-        .expect("temp file rs path contains non-UTF-8");
+    let dsp_path_str = dsp_path.to_str().expect("dsp file path contains non-UTF-8");
+    let rs_path_str = rs_path.to_str().expect("rs file path contains non-UTF-8");
 
-    if cfg!(debug_assertions) {
-        fs::copy(temp_dsp_path, debug_dsp).expect("temp dsp file cannot be copied to target");
-    } else {
-        let _ignore_error = fs::remove_file(debug_dsp);
-    }
-
-    let b = FaustBuilder::new(temp_dsp_path_str, temp_rs_path_str)
+    let b = FaustBuilder::new(dsp_path_str, rs_path_str)
         .set_struct_name(&name)
         .set_module_name(&("dsp_".to_owned() + &name));
+
     b.build();
 
-    if cfg!(debug_assertions) {
-        fs::copy(temp_rs_path_str, debug_rs).expect("rsfile cannot be copied to target");
-    } else {
-        let _ignore_error = fs::remove_file(debug_rs);
-    }
-
-    let stdout = read_to_string(temp_rs.path()).expect("rs file reading failed");
+    let stdout = read_to_string(rs_path).expect("rs file reading failed");
     stdout.parse().expect("rs file parsing failed")
 }
 
