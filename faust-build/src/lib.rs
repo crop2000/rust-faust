@@ -134,7 +134,8 @@ impl FaustBuilder {
 
         output.arg(&self.in_file).arg("-o").arg(target_file.path());
 
-        let output = output.output().expect("Failed to execute command");
+        let output = output.output().unwrap(); //.expect("Failed to execute command");
+
         // eprintln!(
         //     "Wrote temp module:\n{}",
         //     target_file.path().to_str().unwrap()

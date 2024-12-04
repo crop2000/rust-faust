@@ -105,7 +105,7 @@ fn faust_build(faust_code: String, name: String, flags: Vec<String>) -> TokenStr
         .faust_arg("-I")
         .faust_arg("/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/")
         .set_module_name(&("dsp_".to_owned() + &name));
-    let b = flags.iter().fold(b, |b, flag| b.faust_arg(&flag));
+    let b = flags.iter().fold(b, |b, flag| b.faust_arg(flag));
 
     b.build();
 
