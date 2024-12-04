@@ -138,10 +138,10 @@ impl FaustBuilder {
 
         let output = output.output().unwrap(); //.expect("Failed to execute command");
 
-        // eprintln!(
-        //     "Wrote temp module:\n{}",
-        //     target_file.path().to_str().unwrap()
-        // );
+        eprintln!(
+            "Wrote temp module:\n{}",
+            target_file.path().to_str().unwrap()
+        );
         if !output.status.success() {
             panic!(
                 "faust compilation failed: {}",
