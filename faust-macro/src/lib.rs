@@ -86,7 +86,10 @@ fn faust_build(faust_code: String, name: String, flags: Vec<String>) -> TokenStr
     let rs_path_str = rs_path.to_str().expect("rs file path contains non-UTF-8");
 
     let b = FaustBuilder::new(dsp_path_str, rs_path_str)
+        .set_faust_path("/home/olaf/projects/rust/faust4rust/faust-test/faust/build/bin/faust")
         .set_struct_name(&name)
+        .faust_arg("-I")
+        .faust_arg("/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/")
         .set_module_name(&("dsp_".to_owned() + &name));
     let b = flags.iter().fold(b, |b, flag| b.faust_arg(&flag));
 
