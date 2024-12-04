@@ -81,7 +81,7 @@ impl FaustBuilder {
     }
 
     pub fn build(&self) {
-        eprintln!("cargo:rerun-if-changed={}", self.in_file);
+        // eprintln!("cargo:rerun-if-changed={}", self.in_file);
 
         let dest_path = PathBuf::from(&self.out_file);
 
@@ -156,7 +156,7 @@ impl FaustBuilder {
         eprintln!("Wrote module:\n{}", dest_path.to_str().unwrap());
     }
     pub fn build_xml(&self, out_dir: &str) {
-        eprintln!("cargo:rerun-if-changed={}", self.in_file);
+        // eprintln!("cargo:rerun-if-changed={}", self.in_file);
         let mut output = Command::new(self.faust_path.clone().unwrap_or("faust".to_owned()));
 
         let struct_name = match &self.struct_name {
