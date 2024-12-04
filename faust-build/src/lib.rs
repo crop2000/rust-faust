@@ -81,6 +81,7 @@ impl FaustBuilder {
     }
 
     pub fn build(&self) {
+        eprintln!("begin build {}", self.in_file);
         // eprintln!("cargo:rerun-if-changed={}", self.in_file);
 
         let dest_path = PathBuf::from(&self.out_file);
@@ -133,6 +134,7 @@ impl FaustBuilder {
         }
 
         output.arg(&self.in_file).arg("-o").arg(target_file.path());
+        eprintln!("before faust compile");
 
         let output = output.output().unwrap(); //.expect("Failed to execute command");
 
@@ -146,12 +148,12 @@ impl FaustBuilder {
                 String::from_utf8(output.stderr).unwrap()
             );
         }
-
+        eprintln!("after faust compile");
         let dsp_code = fs::read(target_file).unwrap();
         let dsp_code = String::from_utf8(dsp_code).unwrap();
         let dsp_code = dsp_code.replace("<<moduleName>>", &self.module_name);
         let dsp_code = dsp_code.replace("<<structName>>", &struct_name);
-
+        eprintln!("before writing destiantion path");
         fs::write(&dest_path, dsp_code).expect("failed to write to destination path");
 
         eprintln!("Wrote module:\n{}", dest_path.to_str().unwrap());
