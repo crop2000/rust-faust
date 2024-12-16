@@ -244,6 +244,7 @@ pub mod dsp {
         }
     }
 
+    // alternative 1 (first idea)
     pub enum UIEnum {
         channel_0(channel_0), // we can not know if channel_0 and channel_1 have the same structure
         channel_1(channel_1),
@@ -279,6 +280,8 @@ pub mod dsp {
         }
     }
 
+    //alternative 2 (second idea)
+
     impl channel_0 {
         pub fn set(&self, dsp: &mut Volume, value: FaustFloat) {
             match self {
@@ -305,6 +308,90 @@ pub mod dsp {
             match self {
                 channel_1::Level => dsp.fVbargraph1,
                 channel_1::Volume => dsp.fVslider1, // i don't like that we can get slider
+            }
+        }
+    }
+
+    // alternative 3
+    pub enum UIEnum_Address {
+        volumecontrol_channel_0_level,
+        volumecontrol_channel_1_level,
+        volumecontrol_channel_0_volume,
+        volumecontrol_channel_1_volume,
+    }
+
+    impl UIEnum_Address {
+        pub fn set(&self, dsp: &mut Volume, value: FaustFloat) {
+            match self {
+                UIEnum_Address::volumecontrol_channel_0_level => dsp.fVbargraph0 = value,
+                UIEnum_Address::volumecontrol_channel_1_level => dsp.fVbargraph1 = value,
+                UIEnum_Address::volumecontrol_channel_0_volume => dsp.fVslider0 = value,
+                UIEnum_Address::volumecontrol_channel_1_volume => dsp.fVslider1 = value,
+            }
+        }
+        pub fn get(&self, dsp: &mut Volume) -> FaustFloat {
+            match self {
+                UIEnum_Address::volumecontrol_channel_0_level => dsp.fVbargraph0,
+                UIEnum_Address::volumecontrol_channel_1_level => dsp.fVbargraph1,
+                UIEnum_Address::volumecontrol_channel_0_volume => dsp.fVslider0,
+                UIEnum_Address::volumecontrol_channel_1_volume => dsp.fVslider1,
+            }
+        }
+    }
+
+    //alternative 4
+    pub enum UIEnum_Shortname {
+        channel_0_level,
+        channel_1_level,
+        channel_0_volume,
+        channel_1_volume,
+    }
+
+    impl UIEnum_Shortname {
+        pub fn set(&self, dsp: &mut Volume, value: FaustFloat) {
+            match self {
+                UIEnum_Shortname::channel_0_level => dsp.fVbargraph0 = value,
+                UIEnum_Shortname::channel_1_level => dsp.fVbargraph1 = value,
+                UIEnum_Shortname::channel_0_volume => dsp.fVslider0 = value,
+                UIEnum_Shortname::channel_1_volume => dsp.fVslider1 = value,
+            }
+        }
+        pub fn get(&self, dsp: &mut Volume) -> FaustFloat {
+            match self {
+                UIEnum_Shortname::channel_0_level => dsp.fVbargraph0,
+                UIEnum_Shortname::channel_1_level => dsp.fVbargraph1,
+                UIEnum_Shortname::channel_0_volume => dsp.fVslider0,
+                UIEnum_Shortname::channel_1_volume => dsp.fVslider1,
+            }
+        }
+    }
+
+    //alternative 5
+    // separate active and passive ui.
+    // to be more decicive if it can be written to
+    pub enum UIEnum_Active_Shortname {
+        channel_0_volume,
+        channel_1_volume,
+    }
+
+    pub enum UIEnum_Passive_Shortname {
+        channel_0_level,
+        channel_1_level,
+    }
+
+    impl UIEnum_Active_Shortname {
+        pub fn set(&self, dsp: &mut Volume, value: FaustFloat) {
+            match self {
+                UIEnum_Active_Shortname::channel_0_volume => dsp.fVslider0 = value,
+                UIEnum_Active_Shortname::channel_1_volume => dsp.fVslider1 = value,
+            }
+        }
+    }
+    impl UIEnum_Passive_Shortname {
+        pub fn get(&self, dsp: &mut Volume) -> FaustFloat {
+            match self {
+                UIEnum_Passive_Shortname::channel_0_level => dsp.fVbargraph0,
+                UIEnum_Passive_Shortname::channel_1_level => dsp.fVbargraph1,
             }
         }
     }
