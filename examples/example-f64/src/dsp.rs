@@ -16,6 +16,8 @@ pub mod dsp {
     #![allow(unused_mut)]
     #![allow(non_upper_case_globals)]
 
+    use std::default;
+
     use faust_types::*;
 
     pub type FaustFloat = F64;
@@ -392,6 +394,43 @@ pub mod dsp {
             match self {
                 UIEnum_Passive_Shortname::channel_0_level => dsp.fVbargraph0,
                 UIEnum_Passive_Shortname::channel_1_level => dsp.fVbargraph1,
+            }
+        }
+    }
+
+    // alternative 6
+    // one could like to access the variable via the structure of the groups
+    // so one as a struct of all the groups that lead to the enum...
+    #[derive(Default)]
+    pub struct UIEnum_Structured {
+        pub channel_0: s_channel_0,
+        pub channel_1: s_channel_1,
+    }
+
+    pub struct s_channel_0 {
+        pub level: UIEnum_Passive_Shortname,
+        pub volume: UIEnum_Active_Shortname,
+    }
+
+    pub struct s_channel_1 {
+        pub level: UIEnum_Passive_Shortname,
+        pub volume: UIEnum_Active_Shortname,
+    }
+
+    impl Default for s_channel_0 {
+        fn default() -> Self {
+            Self {
+                level: UIEnum_Passive_Shortname::channel_0_level,
+                volume: UIEnum_Active_Shortname::channel_0_volume,
+            }
+        }
+    }
+
+    impl Default for s_channel_1 {
+        fn default() -> Self {
+            Self {
+                level: UIEnum_Passive_Shortname::channel_1_level,
+                volume: UIEnum_Active_Shortname::channel_1_volume,
             }
         }
     }

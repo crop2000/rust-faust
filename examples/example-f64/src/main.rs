@@ -3,6 +3,7 @@ use std::sync::mpsc::channel;
 use crate::dsp::Volume;
 use dsp::dsp::{
     channel_0, channel_1, UIEnum, UIEnum_Address, UIEnum_Passive_Shortname, UIEnum_Shortname,
+    UIEnum_Structured,
 };
 use faust_types::{FaustDsp, ParamIndex};
 pub mod dsp;
@@ -27,5 +28,9 @@ fn main() {
     println!(
         "{}",
         UIEnum_Passive_Shortname::channel_1_level.get(&mut dsp) //alternative 5
+    );
+    println!(
+        "{}",
+        UIEnum_Structured::default().channel_1.level.get(&mut dsp) //alternative 5 + 6
     );
 }
