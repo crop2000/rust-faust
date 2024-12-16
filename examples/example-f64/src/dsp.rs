@@ -245,7 +245,7 @@ pub mod dsp {
     }
 
     pub enum UIEnum {
-        channel_0(channel_0),
+        channel_0(channel_0), // we can not know if channel_0 and channel_1 have the same structure
         channel_1(channel_1),
     }
 
@@ -275,6 +275,36 @@ pub mod dsp {
                 UIEnum::channel_1(channel_1::Level) => self.fVbargraph1 = value,
                 UIEnum::channel_0(channel_0::Volume) => self.fVslider0 = value,
                 UIEnum::channel_1(channel_1::Volume) => self.fVslider1 = value,
+            }
+        }
+    }
+
+    impl channel_0 {
+        pub fn set(&self, dsp: &mut Volume, value: FaustFloat) {
+            match self {
+                channel_0::Level => dsp.fVbargraph0 = value, // i don't like that we can se bargraph
+                channel_0::Volume => dsp.fVslider0 = value,
+            }
+        }
+        pub fn get(&self, dsp: &mut Volume) -> FaustFloat {
+            match self {
+                channel_0::Level => dsp.fVbargraph0,
+                channel_0::Volume => dsp.fVslider0,
+            }
+        }
+    }
+
+    impl channel_1 {
+        pub fn set(&self, dsp: &mut Volume, value: FaustFloat) {
+            match self {
+                channel_1::Level => dsp.fVbargraph1 = value,
+                channel_1::Volume => dsp.fVslider1 = value,
+            }
+        }
+        pub fn get(&self, dsp: &mut Volume) -> FaustFloat {
+            match self {
+                channel_1::Level => dsp.fVbargraph1,
+                channel_1::Volume => dsp.fVslider1, // i don't like that we can get slider
             }
         }
     }
@@ -341,4 +371,5 @@ pub mod dsp {
     }
 }
 
+pub use dsp::UIEnum;
 pub use dsp::Volume;
