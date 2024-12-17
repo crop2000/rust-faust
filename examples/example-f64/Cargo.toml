@@ -15,3 +15,9 @@ default-boxed = { version = "*", optional = true}
 
 [build-dependencies]
 faust-build = { path = "../../faust-build" }
+faust-json =  { path = "../../faust-json" }
+serde_json = "*"
+quote = "^1.0"
+prettyplease = "^0.2"
+syn = "^2.0"
+tempfile = "3.2.0"
