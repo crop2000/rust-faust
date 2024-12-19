@@ -1,3 +1,6 @@
+mod faust_arg;
+
+use faust_arg::{FaustArg, FaustArgs2Args};
 use heck::CamelCase;
 use std::fs;
 use std::path::Path;
@@ -16,16 +19,16 @@ pub fn build_dsp_to_destination(dsp_file: &str, dest_path: &str) {
 }
 
 pub struct FaustBuilder {
-    faust_path: Option<String>,
-    in_file: String,
-    out_file: String,
-    arch_file: Option<String>,
+    pub faust_path: Option<String>,
+    pub in_file: String,
+    pub out_file: String,
+    pub arch_file: Option<String>,
     /// Module name the dsp code will be encapsulated in. By default is "dsp".
-    module_name: String,
+    pub module_name: String,
     /// Name for the DSP struct. If None, we use CamelCased file name.
-    struct_name: Option<String>,
-    use_double: bool,
-    faust_args: Vec<String>,
+    pub struct_name: Option<String>,
+    pub use_double: bool,
+    pub faust_args: Vec<String>,
 }
 
 impl Default for FaustBuilder {
@@ -80,7 +83,7 @@ impl FaustBuilder {
         self
     }
 
-    fn get_struct_name(&self) -> String {
+    pub fn get_struct_name(&self) -> String {
         match &self.struct_name {
             Some(struct_name) => struct_name.clone(),
             None => {
@@ -93,6 +96,40 @@ impl FaustBuilder {
                     .to_camel_case()
             }
         }
+    }
+
+    pub fn build_to_stdout(&self) -> String {
+        let faust = self.faust_path.clone().unwrap_or("faust".to_owned());
+        let mut output = Command::new(faust);
+        let mut args: Vec<FaustArg> = Vec::new();
+
+        args.push(FaustArg::default_lang());
+        args.push(FaustArg::default_timeout());
+        let struct_name = self.get_struct_name();
+        args.push(FaustArg::StructName(&struct_name));
+
+        if self.use_double {
+            args.push(FaustArg::Double)
+        }
+
+        for arg in self.faust_args.iter() {
+            args.push(FaustArg::Arg(arg))
+        }
+
+        let dsp_path = PathBuf::from(&self.in_file);
+        args.push(FaustArg::DspFile(&dsp_path));
+
+        output.args(args.to_args());
+
+        let output = output.output().expect("Failed to execute command");
+        if !output.status.success() {
+            panic!(
+                "faust compilation failed: {}",
+                String::from_utf8(output.stderr).unwrap()
+            );
+        }
+
+        String::from_utf8(output.stdout).expect("could not parse stdout from command")
     }
 
     pub fn build(&self) {
