@@ -1,5 +1,5 @@
 use faust_build::faust_arg::{FaustArg, FaustArgs2Args};
-use faust_json::{self, Faust, GetParmInfo};
+use faust_json::{self, FaustJson, GetParmInfo};
 use proc_macro::{TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use std::{
@@ -84,7 +84,11 @@ fn faust_command(name: &str, temp_dsp_path: &Path, flags: Vec<String>) -> Comman
     faust
 }
 
-fn fill_template(dsp_code: proc_macro2::TokenStream, name: &str, faust_json: Faust) -> TokenStream {
+fn fill_template(
+    dsp_code: proc_macro2::TokenStream,
+    name: &str,
+    faust_json: FaustJson,
+) -> TokenStream {
     let module_name = format_ident!("dsp_{}", name);
     let struct_name = format_ident!("{}", name);
     let parameter_info_enum = faust_json::create_enums(faust_json.get_param_info(), name);
@@ -181,7 +185,7 @@ fn faust_build(input: TokenStream) -> TokenStream {
 
     let json_file = File::open(temp_json_path).expect("Failed to open json file");
     let json_reader = BufReader::new(json_file);
-    let faust_json: Faust = serde_json::from_reader(json_reader).unwrap_or_else(|err| {
+    let faust_json: FaustJson = serde_json::from_reader(json_reader).unwrap_or_else(|err| {
         panic!("json parsing error: {}", err);
     });
 

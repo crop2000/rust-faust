@@ -1,4 +1,4 @@
-mod faust_arg;
+pub mod faust_arg;
 
 use faust_arg::{FaustArg, FaustArgs2Args};
 use heck::CamelCase;

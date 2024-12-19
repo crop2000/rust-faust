@@ -143,12 +143,13 @@ pub enum FaustArg<'a> {
     // faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp
     DspFile(&'a Path),
 }
+
 impl<'a> FaustArg<'a> {
-    pub(crate) fn default_lang() -> FaustArg<'a> {
+    pub fn default_lang() -> FaustArg<'a> {
         FaustArg::Lang("rust")
     }
 
-    pub(crate) fn default_timeout() -> FaustArg<'a> {
+    pub fn default_timeout() -> FaustArg<'a> {
         FaustArg::Timeout("0")
     }
 }

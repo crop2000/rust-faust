@@ -11,7 +11,7 @@ fn parse_file(p: PathBuf) {
     dbg!(&p);
     let file = File::open(p).expect("Failed to open file");
     let reader = BufReader::new(file);
-    let result: Result<Faust, _> = serde_json::from_reader(reader);
+    let result: Result<FaustJson, _> = serde_json::from_reader(reader);
     match &result {
         Ok(_f) => {
             //   dbg!(f);
@@ -105,7 +105,7 @@ fn hand_written() {
 				}
 	]
 }"##;
-    let result: Result<Faust, _> = serde_json::from_str(f);
+    let result: Result<FaustJson, _> = serde_json::from_str(f);
     match &result {
         Ok(f) => {
             dbg!(f);
@@ -185,7 +185,7 @@ fn hand_written_broken() {
 		}
 	]
 }"##;
-    let result: Result<Faust, _> = serde_json::from_str(f);
+    let result: Result<FaustJson, _> = serde_json::from_str(f);
     assert!(result.is_err());
 
     // match one {

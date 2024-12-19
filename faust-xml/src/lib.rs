@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Faust {
+pub struct FaustXML {
     pub name: String,
     pub author: Option<String>,
     pub license: Option<String>,

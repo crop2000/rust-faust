@@ -4,7 +4,7 @@ use serde::{Deserialize, Deserializer};
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Faust {
+pub struct FaustJson {
     pub name: String,
     pub filename: String,
     pub version: String,
@@ -168,7 +168,7 @@ pub trait GetParmInfo {
     fn get_param_info(&self) -> Vec<ParamInfo>;
 }
 
-impl GetParmInfo for Faust {
+impl GetParmInfo for FaustJson {
     fn get_param_info(&self) -> Vec<ParamInfo> {
         self.ui
             .iter()
