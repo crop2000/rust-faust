@@ -45,8 +45,8 @@ fn main() {
     thread::spawn(move || loop {
         // This loops the volume up and when on max sets it down to 0 again.
         // It also reports the current output level of the signal.
-        eprintln!("volume: {} dB", state.get_by_path("volume").unwrap());
-        eprintln!("level:  {} dB", state.get_by_path("level").unwrap());
+        // eprintln!("volume: {} dB", UIActiveShortname::volume.set(dsp, value));
+        eprintln!("level:  {} dB", UIPassiveShortname::level.get(&dsp.dsp));
         volume += 10.;
         if volume > 4. {
             volume = -70.

@@ -18,11 +18,11 @@ fn main() {
     println!(
         "{}",
         // UIEnum_Shortname::channel_0_level.get(&mut dsp) //alternative 4
-        UIPassiveShortname::channel_0_level.get(&mut dsp) //alternative 5
+        UIPassiveShortname::channel_0_level.get(&dsp) //alternative 5
     );
     println!(
         "{}",
-        UIPassiveShortname::channel_1_level.get(&mut dsp) //alternative 5
-                                                          // UIEnum_Structured::default().channel_1.level.get(&mut dsp) //alternative 5 + 6
+        UIPassiveShortname::channel_1_level.get(&dsp) //alternative 5
+                                                      // UIEnum_Structured::default().channel_1.level.get(&mut dsp) //alternative 5 + 6
     );
 }
