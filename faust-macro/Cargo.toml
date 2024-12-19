@@ -15,6 +15,13 @@ proc-macro = true
 debug = []
 
 [dependencies]
-faust-build = { git = "http://github.com/crop2000/rust-faust.git", branch="my_ref_with_tempfile"}
+#faust-build = { git = "http://github.com/crop2000/rust-faust.git", branch="my_ref_with_tempfile"}
+faust-build = { path = "../faust-build" }
+faust-json =  { path = "../faust-json" }
 
 tempfile = "3.2.0"
+prettyplease = "^0.2"
+syn = "^2.0"
+proc-macro2 = "*"
+quote = "^1.0"
+serde_json = "*"
