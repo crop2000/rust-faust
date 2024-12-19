@@ -1,11 +1,12 @@
-use faust_build::FaustBuilder;
+use faust_build::faust_arg::{FaustArg, FaustArgs2Args};
 use faust_json::{self, Faust, GetParmInfo};
 use proc_macro::{TokenStream, TokenTree};
 use quote::{format_ident, quote};
 use std::{
-    fs::{self, read_to_string, File},
+    fs::{self, File},
     io::{BufReader, BufWriter, Write},
-    path::{self, Path, PathBuf},
+    path::{Path, PathBuf},
+    process::Command,
 };
 use syn::parse_str;
 use tempfile::NamedTempFile;
@@ -45,10 +46,6 @@ fn get_name_token(ts: TokenStream) -> String {
         .expect("name declaration is not found.\n Expect 'declare name NAMESTRING;' in faust code.")
 }
 
-fn get_architecture_token(ts: TokenStream) -> Option<String> {
-    get_declared_value("architecture", ts)
-}
-
 fn get_flags_token(ts: TokenStream) -> Vec<String> {
     match get_declared_value("flags", ts) {
         None => vec![],
@@ -64,96 +61,33 @@ fn write_temp_dsp_file(faust_code: String) -> NamedTempFile {
     f.into_inner().expect("temp dsp error on flush")
 }
 
-fn faust_build(
-    faust_code: String,
-    name: String,
-    flags: Vec<String>,
-    architecture: Option<String>,
-) -> TokenStream {
-    // define paths for .dsp and .rs files that help debugging
-    // let mut debug_dsp = Path::new(".")
-    //     .join("target")
-    //     .join("DEBUG_".to_owned() + &name)
-    //     .with_extension("dsp");
+fn faust_command(name: &str, temp_dsp_path: &Path, flags: Vec<String>) -> Command {
+    let mut faust =
+        Command::new("/home/olaf/projects/rust/faust4rust/faust-test/faust/build/bin/faust");
+    let mut args: Vec<FaustArg> = Vec::new();
+    let faust_libs =
+        PathBuf::from("/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/");
+    args.push(FaustArg::ImportDir(&faust_libs));
 
-    // let debug_rs = Path::new(".")
-    //     .join("target")
-    //     .join("DEBUG_".to_owned() + &name)
-    //     .with_extension("rs");
+    args.push(FaustArg::default_lang());
+    args.push(FaustArg::default_timeout());
+    args.push(FaustArg::StructName(name));
 
-    let temp_rs = NamedTempFile::new().expect("failed creating temporary file");
+    for arg in flags.iter() {
+        args.push(FaustArg::Arg(arg))
+    }
 
-    let temp_dsp = write_temp_dsp_file(faust_code);
-    let temp_dsp_path = temp_dsp.path();
-    let temp_dsp_path_str = temp_dsp_path
-        .to_str()
-        .expect("temp file dsp path contains non-UTF-8");
-    let temp_rs_path_str = temp_rs
-        .path()
-        .to_str()
-        .expect("temp file rs path contains non-UTF-8");
+    args.push(FaustArg::Json());
+    args.push(FaustArg::DspFile(temp_dsp_path));
 
-    // if cfg!(debug_assertions) {
-    //     fs::copy(temp_dsp_path, &debug_dsp).expect("temp dsp file cannot be copied to target");
-    // } else {
-    //     let _ignore_error = fs::remove_file(&debug_dsp);
-    // }
+    faust.args(args.to_args());
+    faust
+}
 
-    let b: FaustBuilder = FaustBuilder::new(temp_dsp_path_str, temp_rs_path_str)
-        .set_faust_path("/home/olaf/projects/rust/faust4rust/faust-test/faust/build/bin/faust")
-        .set_struct_name(&name)
-        .faust_arg("-I")
-        .faust_arg("/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/")
-        .set_module_name(&("dsp_".to_owned() + &name));
-
-    // if let Some(a) = architecture {
-    //     let p = PathBuf::from(&a);
-    //     let ap = if p.is_absolute() {
-    //         p
-    //     } else {
-    //         path::absolute(p).unwrap_or_else(|_| {
-    //             panic!("could not make architecture path into a absolute path: '{a}'")
-    //         })
-    //     };
-    //     b = b.set_arch_file(ap.to_str().unwrap());
-    // }
-
-    // let b = flags.iter().fold(b, |b, flag| b.faust_arg(flag));
-    // b.build();
-    // debug_dsp.set_extension("xml");
-
-    // b.build_xml_at_file(
-    //     debug_dsp
-    //         .to_str()
-    //         .expect("debug path for xml is not a valid string"),
-    // );
-
-    // if cfg!(debug_assertions) {
-    //     fs::copy(temp_rs_path_str, debug_rs).expect("rsfile cannot be copied to target");
-    // } else {
-    //     let _ignore_error = fs::remove_file(debug_rs);
-    // }
-
-    // let stdout = read_to_string(temp_rs.path()).expect("rs file reading failed");
-    // stdout.parse().expect("rs file parsing failed")
-
-    // b.build_xml();
-    b.build_json();
-    let dsp_code: String = b.build_to_stdout();
-
-    let file =
-        File::open(temp_dsp_path_str.to_owned() + ".json").expect("Failed to open json file");
-    let reader = BufReader::new(file);
-    let f: Faust = serde_json::from_reader(reader).unwrap_or_else(|err| {
-        panic!("json parsing error: {}", err);
-    });
-
-    let dsp_code = parse_str::<proc_macro2::TokenStream>(&dsp_code)
-        .expect("Failed to parse string into tokens");
-
-    let module_name = format_ident!("{}", b.module_name.as_str());
-    let struct_name = format_ident!("{}", b.get_struct_name());
-    let parameter_info_enum = faust_json::create_enums(f.get_param_info(), &b.get_struct_name());
+fn fill_template(dsp_code: proc_macro2::TokenStream, name: &str, faust_json: Faust) -> TokenStream {
+    let module_name = format_ident!("dsp_{}", name);
+    let struct_name = format_ident!("{}", name);
+    let parameter_info_enum = faust_json::create_enums(faust_json.get_param_info(), name);
 
     let template = quote! {
         mod #module_name {
@@ -179,19 +113,82 @@ fn faust_build(
 
     };
 
-    // println!("{}", &template.to_string());
-    // let parsed: syn::File = syn::parse_file(&template.to_string())
-    //     .unwrap_or_else(|err| panic!("syn failed with: {}", err.into_compile_error()));
-    // let pp = prettyplease::unparse(&parsed);
-
     template.into()
+}
+
+fn faust_build(input: TokenStream) -> TokenStream {
+    let faust_code = format!("{}", input).replace(';', ";\n");
+    let name = get_name_token(input.clone());
+    let flags = get_flags_token(input.clone());
+
+    let temp_dsp = write_temp_dsp_file(faust_code);
+    let temp_dsp_path = temp_dsp.path();
+    let temp_json_path = PathBuf::from(
+        temp_dsp_path
+            .to_str()
+            .expect("tmp file is not utf8")
+            .to_owned()
+            + ".json",
+    );
+
+    // define paths for .dsp and .json files that help debugging
+    let debug_dsp = Path::new(".")
+        .join("target")
+        .join("DEBUG_".to_owned() + &name)
+        .with_extension("dsp");
+
+    let debug_json = Path::new(".")
+        .join("target")
+        .join("DEBUG_".to_owned() + &name)
+        .with_extension("json");
+
+    let debug_rs = Path::new(".")
+        .join("target")
+        .join("DEBUG_".to_owned() + &name)
+        .with_extension("rs");
+
+    if cfg!(debug_assertions) {
+        fs::copy(temp_dsp_path, &debug_dsp).expect("temp dsp file cannot be copied to target");
+    } else {
+        let _ignore_error = fs::remove_file(&debug_dsp);
+    }
+
+    let mut faust = faust_command(&name, temp_dsp_path, flags);
+    let output = faust.output().expect("Failed to execute faust");
+    if !output.status.success() {
+        panic!(
+            "faust compilation failed: {}",
+            String::from_utf8(output.stderr).unwrap()
+        );
+    }
+    let dsp_code: String =
+        String::from_utf8(output.stdout).expect("could not parse stdout from command");
+
+    if cfg!(debug_assertions) {
+        fs::copy(&temp_json_path, &debug_json).expect("temp json file cannot be copied to target");
+    } else {
+        let _ignore_error = fs::remove_file(&debug_json);
+    }
+
+    if cfg!(debug_assertions) {
+        fs::write(debug_rs, &dsp_code).expect("failed to write debug rs file");
+    } else {
+        let _ignore_error = fs::remove_file(&debug_dsp);
+    }
+
+    let dsp_code = parse_str::<proc_macro2::TokenStream>(&dsp_code)
+        .expect("Failed to parse string into tokens");
+
+    let json_file = File::open(temp_json_path).expect("Failed to open json file");
+    let json_reader = BufReader::new(json_file);
+    let faust_json: Faust = serde_json::from_reader(json_reader).unwrap_or_else(|err| {
+        panic!("json parsing error: {}", err);
+    });
+
+    fill_template(dsp_code, &name, faust_json)
 }
 
 #[proc_macro]
 pub fn faust(input: TokenStream) -> TokenStream {
-    let faust_code = format!("{}", input).replace(';', ";\n");
-    let name = get_name_token(input.clone());
-    let flags = get_flags_token(input.clone());
-    let architecture = get_architecture_token(input);
-    faust_build(faust_code, name, flags, architecture)
+    faust_build(input)
 }
