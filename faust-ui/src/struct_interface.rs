@@ -22,7 +22,7 @@ enum StructInfo {
 
 impl StructInfo {
     #[allow(unused_variables)]
-    pub fn get_lbel(&self) -> String {
+    pub fn get_label(&self) -> String {
         match self {
             Self::GroupInfo {
                 label,
@@ -214,7 +214,7 @@ pub fn create(dsp_json: &FaustJson, ui_static_name: &Ident, ui_type: &Ident) -> 
     let head_label = ui_info_tree
         .first()
         .expect("cannot fail")
-        .get_lbel()
+        .get_label()
         .to_camel_case();
     let head_type = format_ident!("{ui_type}{}", head_label);
 
