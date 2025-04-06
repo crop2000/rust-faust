@@ -134,7 +134,7 @@ fn create_qualified_enum(infos: &[&ParamInfo], is_active: bool) -> TokenStream {
         .collect();
     quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Display, EnumIter, EnumCount,EnumDiscriminants,VariantNames)]
-        #[strum_discriminants(derive(Display,EnumIter, EnumCount,VariantArray,VariantNames,Hash))]
+        #[strum_discriminants(derive(Display,EnumIter, EnumCount,IntoStaticStr,VariantArray,VariantNames,Hash))]
         pub enum #enum_name {
             #(#i(FaustFloat)),*
         }
@@ -280,7 +280,7 @@ fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
         )
     };
     quote::quote! {
-        use strum::{Display,EnumIter,EnumCount,EnumDiscriminants,VariantArray,VariantNames};
+        use strum::{Display,EnumIter,EnumCount,EnumDiscriminants,IntoStaticStr,VariantArray,VariantNames};
 
         #active_enum
         #active_impl
