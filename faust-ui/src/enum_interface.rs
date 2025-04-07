@@ -9,7 +9,6 @@ const UIENUMPREFIX: &str = "UI";
 const UIENUMVALUE: &str = "Value";
 const UIENUMACTIVE: &str = "Active";
 const UIENUMPASSIVE: &str = "Passive";
-const UIENUMDISCRIMINANTS: &str = "Discriminants";
 
 #[must_use]
 pub fn enum_active_value_ident() -> Ident {
@@ -23,21 +22,11 @@ pub fn enum_passive_value_ident() -> Ident {
 
 #[must_use]
 pub fn enum_active_discriminants_ident() -> Ident {
-    format_ident!("{UIENUMPREFIX}{UIENUMACTIVE}{UIENUMVALUE}{UIENUMDISCRIMINANTS}")
-}
-
-#[must_use]
-pub fn enum_passive_discriminants_ident() -> Ident {
-    format_ident!("{UIENUMPREFIX}{UIENUMPASSIVE}{UIENUMVALUE}{UIENUMDISCRIMINANTS}")
-}
-
-#[must_use]
-pub fn alias_active_ident() -> Ident {
     format_ident!("{UIENUMPREFIX}{UIENUMACTIVE}")
 }
 
 #[must_use]
-pub fn alias_passive_ident() -> Ident {
+pub fn enum_passive_discriminants_ident() -> Ident {
     format_ident!("{UIENUMPREFIX}{UIENUMPASSIVE}")
 }
 
@@ -118,11 +107,6 @@ fn create_qualified_enum(infos: &[&ParamInfo], is_active: bool) -> TokenStream {
     } else {
         enum_passive_value_ident()
     };
-    let alias_name = if is_active {
-        alias_active_ident()
-    } else {
-        alias_passive_ident()
-    };
     let discriminants_name = if is_active {
         enum_active_discriminants_ident()
     } else {
@@ -135,10 +119,10 @@ fn create_qualified_enum(infos: &[&ParamInfo], is_active: bool) -> TokenStream {
     quote! {
         #[derive(Debug, Clone, Copy, PartialEq, Display, EnumIter, EnumCount,EnumDiscriminants,VariantNames)]
         #[strum_discriminants(derive(Display,EnumIter, EnumCount,IntoStaticStr,VariantArray,VariantNames,Hash))]
+        #[strum_discriminants(name(#discriminants_name))]
         pub enum #enum_name {
             #(#i(FaustFloat)),*
         }
-        pub type #alias_name = #discriminants_name;
     }
 }
 
@@ -159,7 +143,7 @@ fn create_active_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
             quote! { #enum_name::#shortname(value) => *value}
         })
         .collect();
-    let enum_name_discriminant = alias_active_ident();
+    let enum_name_discriminant = enum_active_discriminants_ident();
     let matches_discriminant: Vec<TokenStream> = infos
         .iter()
         .map(|param_info| {
@@ -208,7 +192,7 @@ fn create_active_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
 fn create_passive_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
     let enum_name: Ident = enum_passive_value_ident();
 
-    let enum_name_discriminant = alias_passive_ident();
+    let enum_name_discriminant = enum_passive_discriminants_ident();
     let dsp_name = format_ident!("{dsp_name}");
     let matches_dsp_value: Vec<TokenStream> = infos
         .iter()

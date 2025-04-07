@@ -38,14 +38,14 @@ impl StructInfo {
     }
     pub fn active(label: &str, shortname: &str) -> Self {
         Self::UIInfo {
-            type_name: enum_interface::alias_active_ident(),
+            type_name: enum_interface::enum_active_discriminants_ident(),
             label: format_ident!("{label}"),
             shortname: format_ident!("{shortname}"),
         }
     }
     pub fn passive(label: &str, shortname: &str) -> Self {
         Self::UIInfo {
-            type_name: enum_interface::alias_passive_ident(),
+            type_name: enum_interface::enum_passive_discriminants_ident(),
             label: format_ident!("{label}"),
             shortname: format_ident!("{shortname}"),
         }
