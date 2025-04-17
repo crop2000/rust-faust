@@ -25,8 +25,9 @@ strum = { version = "0.27", features = ["derive"] }
 faust-json = { git = "http://github.com/Frando/rust-faust.git",optional = true}
 # faust-json =  { path = "../faust-json" , optional = true}
 serde_json = { version = "^1", optional = true }
-faust-ui = { git = "http://github.com/Frando/rust-faust.git",optional = true}
-# faust-ui =  { path = "../faust-ui", optional = true }
+#faust-ui = { git = "http://github.com/Frando/rust-faust.git",optional = true}
+faust-ui = { git = "https://github.com/crop2000/rust-faust", branch = "ui_range", optional = true }
+#faust-ui =  { path = "../faust-ui", optional = true }
 
 [build-dependencies]
 regex = "*"

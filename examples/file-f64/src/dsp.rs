@@ -334,20 +334,6 @@ impl UISet<Amplifer, FaustFloat> for UIActive {
         }
     }
 }
-impl UIRange for UIActive {
-    fn min(&self) -> f32 {
-        match self {
-            UIActive::Channel0Volume => -70f32,
-            UIActive::Channel1Volume => -70f32,
-        }
-    }
-    fn max(&self) -> f32 {
-        match self {
-            UIActive::Channel0Volume => 4f32,
-            UIActive::Channel1Volume => 4f32,
-        }
-    }
-}
 impl UIActive {
     pub fn value(&self, value: FaustFloat) -> UIActiveValue {
         match self {
@@ -396,20 +382,6 @@ impl UIPassive {
         match self {
             UIPassive::Channel0Level => UIPassiveValue::Channel0Level(value),
             UIPassive::Channel1Level => UIPassiveValue::Channel1Level(value),
-        }
-    }
-}
-impl UIRange for UIPassive {
-    fn min(&self) -> f32 {
-        match self {
-            UIPassive::Channel0Level => -60f32,
-            UIPassive::Channel1Level => -60f32,
-        }
-    }
-    fn max(&self) -> f32 {
-        match self {
-            UIPassive::Channel0Level => 5f32,
-            UIPassive::Channel1Level => 5f32,
         }
     }
 }

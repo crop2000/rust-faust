@@ -99,3 +99,8 @@ pub trait UIGet<D> {
     fn get_value(&self, dsp: &D) -> Self::F;
     fn get_enum(&self, dsp: &D) -> Self::E;
 }
+
+pub trait UIRange {
+    fn min(&self) -> f32;
+    fn max(&self) -> f32;
+}
