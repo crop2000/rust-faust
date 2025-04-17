@@ -283,6 +283,18 @@ impl UISet<Volume, FaustFloat> for UIActive {
         }
     }
 }
+impl UIRange for UIActive {
+    fn min(&self) -> f32 {
+        match self {
+            UIActive::Volume => -70f32,
+        }
+    }
+    fn max(&self) -> f32 {
+        match self {
+            UIActive::Volume => 4f32,
+        }
+    }
+}
 impl UIActive {
     pub fn value(&self, value: FaustFloat) -> UIActiveValue {
         match self {
@@ -326,6 +338,18 @@ impl UIPassive {
     pub fn value(&self, value: FaustFloat) -> UIPassiveValue {
         match self {
             UIPassive::Level => UIPassiveValue::Level(value),
+        }
+    }
+}
+impl UIRange for UIPassive {
+    fn min(&self) -> f32 {
+        match self {
+            UIPassive::Level => -60f32,
+        }
+    }
+    fn max(&self) -> f32 {
+        match self {
+            UIPassive::Level => 5f32,
         }
     }
 }
