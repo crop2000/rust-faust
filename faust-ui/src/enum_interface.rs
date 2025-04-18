@@ -3,7 +3,7 @@ use heck::CamelCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote, ToTokens};
 use std::vec;
-use syn::{Ident, LitFloat};
+use syn::{Ident};
 
 const UIENUMPREFIX: &str = "UI";
 const UIENUMVALUE: &str = "Value";
@@ -152,6 +152,7 @@ fn create_qualified_enum(infos: &[&ParamInfo], is_active: bool) -> TokenStream {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn create_active_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
     let enum_name = enum_active_value_ident();
     let matches_set: Vec<TokenStream> = infos
@@ -204,6 +205,42 @@ fn create_active_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
         })
         .collect();
 
+        if infos.is_empty(){
+            quote! {
+                impl UISelfSet<#dsp_name,FaustFloat> for #enum_name {
+                    fn set(&self, dsp: &mut #dsp_name) {
+                        panic!("cannot be called")
+                    }
+                    fn get(&self) -> FaustFloat {
+                        panic!("cannot be called")
+                    }
+                }
+                impl UISet<#dsp_name,FaustFloat> for #enum_name_discriminant {
+                    fn set(&self, dsp: &mut #dsp_name, value: FaustFloat) {
+                        panic!("cannot be called")
+                    }
+                }
+        
+                impl UIRange for #enum_name_discriminant {
+                    fn min(&self) -> f32{
+                        panic!("cannot be called")
+                    }
+                    fn max(&self) -> f32{
+                        panic!("cannot be called")
+                    }
+                }
+        
+                impl #enum_name_discriminant {
+                    pub fn value(&self, value: FaustFloat) -> #enum_name {
+                        panic!("cannot be called")
+                    }
+                }
+            }
+        
+
+        } else {
+
+        
     quote! {
         impl UISelfSet<#dsp_name,FaustFloat> for #enum_name {
             fn set(&self, dsp: &mut #dsp_name) {
@@ -245,7 +282,7 @@ fn create_active_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
                 }
             }
         }
-    }
+    }}
 }
 
 fn create_passive_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
@@ -338,22 +375,26 @@ fn create_passive_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
 fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
     let active: Vec<&ParamInfo> = v.iter().filter(|i| i.is_active).collect();
     let passive: Vec<&ParamInfo> = v.iter().filter(|i| !i.is_active).collect();
-    let (active_enum, active_impl) = if active.is_empty() {
-        (TokenStream::new(), TokenStream::new())
-    } else {
+    let (active_enum, active_impl) = 
+    // if active.is_empty() {
+    //     (TokenStream::new(), TokenStream::new())
+    // } else {
         (
             create_qualified_enum(&active, true),
             create_active_impl(&active, dsp_name),
         )
-    };
-    let (passive_enum, passive_impl) = if passive.is_empty() {
-        (TokenStream::new(), TokenStream::new())
-    } else {
+    // };
+    ;
+    let (passive_enum, passive_impl) = 
+    // if passive.is_empty() {
+    //     (TokenStream::new(), TokenStream::new())
+    // } else {
         (
             create_qualified_enum(&passive, false),
             create_passive_impl(&passive, dsp_name),
         )
-    };
+    // };
+    ;
     quote::quote! {
         use strum::{Display,EnumIter,EnumCount,EnumDiscriminants,IntoStaticStr,VariantArray,VariantNames};
 
