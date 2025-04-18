@@ -78,6 +78,8 @@ impl<'a> CodeOptionToCommandArgs<'a> for &'a CodeOptionMap {
 #[derive(Debug, Clone, Eq, EnumDiscriminants, EnumIs, EnumString)]
 #[strum_discriminants(derive(Hash))]
 pub enum CodeOption {
+    // -rnt      --rust-no-faustdsp-trait      (Rust only) Don't generate FaustDsp trait implmentation.
+    NoFaustDsp,
     // Code generation options:
     // ---------------------------------------
     // ...
@@ -407,6 +409,7 @@ impl PartialEq for CodeOption {
 impl<'a> CodeOptionsToCommandArgsRef<'a> for CodeOption {
     fn to_command_args(&'a self) -> Vec<&'a OsStr> {
         match self {
+            Self::NoFaustDsp => vec!["-rnt".as_ref() as &OsStr],
             Self::Single => vec!["-single".as_ref() as &OsStr],
             Self::Double => vec!["-double".as_ref() as &OsStr],
             Self::OneSample => vec!["-os".as_ref() as &OsStr],
