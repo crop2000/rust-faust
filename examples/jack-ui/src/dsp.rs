@@ -264,7 +264,8 @@ use strum::{
 pub enum UIActiveValue {
     Volume(FaustFloat),
 }
-impl UISelfSet<Volume, FaustFloat> for UIActiveValue {
+impl UISelfSet<Volume> for UIActiveValue {
+    type F = FaustFloat;
     fn set(&self, dsp: &mut Volume) {
         match self {
             UIActiveValue::Volume(value) => dsp.fVslider0 = *value,
@@ -280,6 +281,18 @@ impl UISet<Volume, FaustFloat> for UIActive {
     fn set(&self, dsp: &mut Volume, value: FaustFloat) {
         match self {
             UIActive::Volume => dsp.fVslider0 = value,
+        }
+    }
+}
+impl UIRange for UIActive {
+    fn min(&self) -> f32 {
+        match self {
+            UIActive::Volume => -70f32,
+        }
+    }
+    fn max(&self) -> f32 {
+        match self {
+            UIActive::Volume => 4f32,
         }
     }
 }
@@ -326,6 +339,18 @@ impl UIPassive {
     pub fn value(&self, value: FaustFloat) -> UIPassiveValue {
         match self {
             UIPassive::Level => UIPassiveValue::Level(value),
+        }
+    }
+}
+impl UIRange for UIPassive {
+    fn min(&self) -> f32 {
+        match self {
+            UIPassive::Level => -60f32,
+        }
+    }
+    fn max(&self) -> f32 {
+        match self {
+            UIPassive::Level => 5f32,
         }
     }
 }

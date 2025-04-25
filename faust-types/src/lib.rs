@@ -88,9 +88,10 @@ pub trait UI<T> {
 pub trait UISet<D, F> {
     fn set(&self, dsp: &mut D, value: F);
 }
-pub trait UISelfSet<D, F> {
+pub trait UISelfSet<D> {
+    type F;
     fn set(&self, dsp: &mut D);
-    fn get(&self) -> F;
+    fn get(&self) -> Self::F;
 }
 
 pub trait UIGet<D> {
@@ -98,4 +99,9 @@ pub trait UIGet<D> {
     type F;
     fn get_value(&self, dsp: &D) -> Self::F;
     fn get_enum(&self, dsp: &D) -> Self::E;
+}
+
+pub trait UIRange {
+    fn min(&self) -> f32;
+    fn max(&self) -> f32;
 }
