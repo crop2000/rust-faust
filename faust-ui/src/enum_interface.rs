@@ -11,22 +11,22 @@ const UIENUMACTIVE: &str = "Active";
 const UIENUMPASSIVE: &str = "Passive";
 
 #[must_use]
-pub fn enum_active_value_ident() -> Ident {
+fn enum_active_value_ident() -> Ident {
     format_ident!("{UIENUMPREFIX}{UIENUMACTIVE}{UIENUMVALUE}")
 }
 
 #[must_use]
-pub fn enum_passive_value_ident() -> Ident {
+fn enum_passive_value_ident() -> Ident {
     format_ident!("{UIENUMPREFIX}{UIENUMPASSIVE}{UIENUMVALUE}")
 }
 
 #[must_use]
-pub fn enum_active_discriminants_ident() -> Ident {
+pub(crate) fn enum_active_discriminants_ident() -> Ident {
     format_ident!("{UIENUMPREFIX}{UIENUMACTIVE}")
 }
 
 #[must_use]
-pub fn enum_passive_discriminants_ident() -> Ident {
+pub(crate) fn enum_passive_discriminants_ident() -> Ident {
     format_ident!("{UIENUMPREFIX}{UIENUMPASSIVE}")
 }
 
