@@ -111,3 +111,163 @@ pub fn build_dsp_code_from_macro(input: &proc_macro2::TokenStream) -> proc_macro
     builder.write_debug_json_file(&builder.get_struct_name().to_snake_case());
     dsp_code
 }
+
+#[must_use]
+pub fn derive_faust_dsp(ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    quote::quote! {
+    impl FaustDsp for #ident {
+        type T = FaustFloat;
+        fn new() -> Self
+        where
+            Self: Sized,
+        {
+            Self::new()
+        }
+        fn metadata(&self, m: &mut dyn Meta) {
+            self.metadata(m)
+        }
+        fn get_sample_rate(&self) -> i32 {
+            self.get_sample_rate()
+        }
+        fn get_num_inputs(&self) -> i32 {
+            FAUST_INPUTS as i32
+        }
+        fn get_num_outputs(&self) -> i32 {
+            FAUST_OUTPUTS as i32
+        }
+        fn class_init(sample_rate: i32)
+        where
+            Self: Sized,
+        {
+            Self::class_init(sample_rate);
+        }
+        fn instance_reset_params(&mut self) {
+            self.instance_reset_params()
+        }
+        fn instance_clear(&mut self) {
+            self.instance_clear()
+        }
+        fn instance_constants(&mut self, sample_rate: i32) {
+            self.instance_constants(sample_rate)
+        }
+        fn instance_init(&mut self, sample_rate: i32) {
+            self.instance_init(sample_rate)
+        }
+        fn init(&mut self, sample_rate: i32) {
+            self.init(sample_rate)
+        }
+        fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>) {
+            self.build_user_interface(ui_interface)
+        }
+        fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>)
+        where
+            Self: Sized,
+        {
+            Self::build_user_interface_static(ui_interface);
+        }
+        fn get_param(&self, param: ParamIndex) -> Option<Self::T> {
+            self.get_param(param)
+        }
+        fn set_param(&mut self, param: ParamIndex, value: Self::T) {
+            self.set_param(param, value)
+        }
+        fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut [&mut [Self::T]]) {
+            self.compute(count as usize, inputs, outputs)
+        }
+    }
+        }
+}
+
+#[must_use]
+pub fn derive_compute_dsp(ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    quote::quote! {
+        impl ComputeDsp for #ident {
+            type F = FaustFloat;
+            fn compute(&mut self, count: i32, inputs: &[&[Self::F]], outputs: &mut [&mut [Self::F]]) {
+                self.compute(count as usize, inputs, outputs)
+            }
+            fn compute_vec(&mut self, count: i32, inputs: &[Vec<Self::F>], outputs: &mut [Vec<Self::F>]) {
+                self.compute(count as usize, inputs, outputs)
+            }
+        }
+
+        impl<'a> #ident{
+            pub fn as_compute_dsp(&'a mut self) -> &'a mut dyn ComputeDsp<
+            F = <#ident as ComputeDsp>::F,
+        > {
+                self as &'a mut dyn ComputeDsp<
+                        F = <#ident as ComputeDsp>::F,
+                    >
+            }
+        }
+    }
+}
+
+#[must_use]
+pub fn derive_faustfloat_dsp(ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    quote::quote! {
+        impl FaustFloatDsp for #ident {
+            type F = FaustFloat;
+        }
+    }
+}
+
+#[must_use]
+pub fn derive_init_dsp(ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    quote::quote! {
+        impl InitDsp for #ident {
+            fn instance_init(&mut self, sample_rate: i32) {
+                self.instance_init(sample_rate)
+            }
+        }
+    }
+}
+
+#[must_use]
+pub fn derive_inplace_dsp(ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    quote::quote! {
+        impl InPlaceDsp for #ident where Self: FaustFloatDsp<F = FaustFloat>{
+            fn compute(&mut self, count: i32, ios: &mut [&mut [Self::F]]) {
+                self.compute(count as usize, ios)
+            }
+            fn compute_vec(&mut self, count: i32, ios: &mut [Vec<Self::F>]) {
+                self.compute(count as usize, ios)
+            }
+        }
+        impl<'a> #ident {
+            pub fn as_inplace_dsp(
+                &'a mut self,
+            ) -> &'a mut dyn InPlaceDsp<F = <#ident as faust_types::FaustFloatDsp>::F> {
+                self
+            }
+        }
+    }
+}
+
+#[must_use]
+pub fn derive_external_control_dsp(ident: &proc_macro2::Ident) -> proc_macro2::TokenStream {
+    quote::quote! {
+        impl ExternalControlDsp for #ident where Self: FaustFloatDsp<F = FaustFloat>{
+            type S = UIActive;
+            type V = UIActiveValue;
+            fn control(&mut self) {
+                self.control()
+            }
+            fn update_controls(&mut self,control: &[&Self::F]) {
+                //this would be different if faust wouldn't keep a copy of the controls in the struct
+                <Self::S as strum::VariantArray>::VARIANTS
+                .iter()
+                .zip(control.iter())
+                .for_each(|(k, v)| UISet::set(k, self, **v));
+                self.control()
+            }
+            fn update_control_values(&mut self,controls: &[&Self::V]) {
+                //this would be different if faust wouldn't keep a copy of the controls in the struct
+                controls.iter().for_each(|v|
+                    UISelfSet::<#ident>::set(*v, self)
+                );
+                self.control()
+            }
+        }
+    }
+}

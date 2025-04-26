@@ -123,3 +123,30 @@ pub trait UIRange {
     fn min(&self) -> f32;
     fn max(&self) -> f32;
 }
+
+pub trait ComputeDsp: Any {
+    type F;
+    fn compute(&mut self, count: i32, inputs: &[&[Self::F]], outputs: &mut [&mut [Self::F]]);
+    fn compute_vec(&mut self, count: i32, inputs: &[Vec<Self::F>], outputs: &mut [Vec<Self::F>]);
+}
+
+pub trait FaustFloatDsp: Any + Send + Sync + 'static {
+    type F;
+}
+
+pub trait InitDsp: Any {
+    fn instance_init(&mut self, sample_rate: i32);
+}
+
+pub trait InPlaceDsp: FaustFloatDsp + Any {
+    fn compute(&mut self, count: i32, ios: &mut [&mut [Self::F]]);
+    fn compute_vec(&mut self, count: i32, ios: &mut [Vec<Self::F>]);
+}
+
+pub trait ExternalControlDsp: FaustFloatDsp + Any + Sized {
+    type S: UISet<Self, Self::F>;
+    type V: UISelfSet<Self, F = Self::F>;
+    fn control(&mut self);
+    fn update_controls(&mut self, controls: &[&Self::F]);
+    fn update_control_values(&mut self, controls: &[&Self::V]);
+}

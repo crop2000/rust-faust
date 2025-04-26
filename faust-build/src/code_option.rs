@@ -146,6 +146,9 @@ pub enum CodeOption {
     //   -fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -mem1/-mem2 mode.
     //   -wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding.
     //   -ni <n>     --narrowing-iterations <n>  number of iterations before stopping narrowing in signal bounding.
+    //   -rnt        --rust-no-faustdsp-trait    (Rust only) Don't generate FaustDsp trait implmentation.
+    NoFaustDsp,
+    //   -rnlm       --rust-no-libm              (Rust only) Don't generate FFI calls to libm.
 
     // Block diagram options:
     // ---------------------------------------
@@ -407,6 +410,7 @@ impl PartialEq for CodeOption {
 impl<'a> CodeOptionsToCommandArgsRef<'a> for CodeOption {
     fn to_command_args(&'a self) -> Vec<&'a OsStr> {
         match self {
+            Self::NoFaustDsp => vec!["-rnt".as_ref() as &OsStr],
             Self::Single => vec!["-single".as_ref() as &OsStr],
             Self::Double => vec!["-double".as_ref() as &OsStr],
             Self::OneSample => vec!["-os".as_ref() as &OsStr],
