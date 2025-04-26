@@ -487,22 +487,6 @@ fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
     let active: Vec<&ParamInfo> = v.iter().filter(|i| i.is_active).collect();
     let passive: Vec<&ParamInfo> = v.iter().filter(|i| !i.is_active).collect();
     // because of strum bug #433 we cannot create empty enums
-    let (active_enum, active_impl) = if active.is_empty() {
-        (TokenStream::new(), TokenStream::new())
-    } else {
-        (
-            create_qualified_enum(&active, true),
-            create_active_impl(&active, dsp_name),
-        )
-    };
-    let (passive_enum, passive_impl) = if passive.is_empty() {
-        (TokenStream::new(), TokenStream::new())
-    } else {
-        (
-            create_qualified_enum(&passive, false),
-            create_passive_impl(&passive, dsp_name),
-        )
-    };
 
     let (active_enum, active_impl) = (
         create_qualified_enum(&active, true),

@@ -439,13 +439,9 @@ pub mod meta {
     pub const OPTIONS: &'static str = "[osc:on]";
     pub const VERSION: &'static str = "1.0";
     pub mod libs {
-        pub mod signals {
-            pub const NAME: &'static str = "Faust Signal Routing Library";
-            pub const VERSION: &'static str = "1.6.0";
-        }
-        pub mod platform {
-            pub const NAME: &'static str = "Generic Platform Library";
-            pub const VERSION: &'static str = "1.3.0";
+        pub mod basics {
+            pub const NAME: &'static str = "Faust Basic Element Library";
+            pub const VERSION: &'static str = "1.21.0";
         }
         pub mod maths {
             pub const AUTHOR: &'static str = "GRAME";
@@ -454,9 +450,13 @@ pub mod meta {
             pub const NAME: &'static str = "Faust Math Library";
             pub const VERSION: &'static str = "2.8.1";
         }
-        pub mod basics {
-            pub const NAME: &'static str = "Faust Basic Element Library";
-            pub const VERSION: &'static str = "1.21.0";
+        pub mod platform {
+            pub const NAME: &'static str = "Generic Platform Library";
+            pub const VERSION: &'static str = "1.3.0";
+        }
+        pub mod signals {
+            pub const NAME: &'static str = "Faust Signal Routing Library";
+            pub const VERSION: &'static str = "1.6.0";
         }
     }
 }

@@ -1,6 +1,6 @@
 use std::any::Any;
-// use std::hash::Hash;
-// use strum::IntoEnumIterator;
+use std::hash::Hash;
+use strum::IntoEnumIterator;
 
 pub type F32 = f32;
 pub type F64 = f64;
@@ -89,37 +89,40 @@ pub trait UI<T> {
 }
 
 // traits for generated code
-pub trait UISet<D, F> {
-    //: Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+pub trait UISet<D, F>:
+    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+{
     fn set(&self, dsp: &mut D, value: F);
 }
 
-pub trait UISetAny<F> {
+pub trait UISetAny<F>:
+    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+{
     fn set(&self, dsp: &mut dyn Any, value: F);
 }
 
-pub trait UISelfSet<D> {
-    //: Clone + Send + Sync + IntoEnumIterator + 'static
+pub trait UISelfSet<D>: Clone + Send + Sync + IntoEnumIterator + 'static {
     type F;
     fn set(&self, dsp: &mut D);
     fn get(&self) -> Self::F;
 }
 
-pub trait UISelfSetAny {
-    //: Clone + Send + Sync + IntoEnumIterator + 'static
+pub trait UISelfSetAny: Clone + Send + Sync + IntoEnumIterator + 'static {
     fn set(&self, dsp: &mut dyn Any);
 }
 
-pub trait UIGet<D> {
-    // :    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+pub trait UIGet<D>:
+    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+{
     type E;
     type F;
     fn get_value(&self, dsp: &D) -> Self::F;
     fn get_enum(&self, dsp: &D) -> Self::E;
 }
 
-pub trait UIGetAny {
-    // :    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+pub trait UIGetAny:
+    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+{
     type E;
     type F;
     fn get_value(&self, dsp: &dyn Any) -> Self::F;

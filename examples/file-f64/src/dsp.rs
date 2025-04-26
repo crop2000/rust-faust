@@ -432,7 +432,7 @@ impl DspUiVolumeChannel1 {
 pub static DSP_UI: DspUiVolume = DspUiVolume::static_ui();
 pub mod meta {
     pub const AUTHOR: &'static str = "Franz Heinzmann";
-    pub const COMPILE_OPTIONS: &'static str = "-lang rust -ct 1 -cn Amplifer -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0";
+    pub const COMPILE_OPTIONS: &'static str = "-lang rust -ec -ct 1 -cn Amplifer -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0";
     pub const FILENAME: &'static str = "volume.dsp";
     pub const LICENSE: &'static str = "BSD";
     pub const NAME: &'static str = "volume";
@@ -441,7 +441,6 @@ pub mod meta {
     pub mod libs {
         pub mod basics {
             pub const NAME: &'static str = "Faust Basic Element Library";
-            pub const TABULATEND: &'static str = "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>";
             pub const VERSION: &'static str = "1.21.0";
         }
         pub mod maths {
