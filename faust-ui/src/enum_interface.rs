@@ -503,6 +503,15 @@ fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
             create_passive_impl(&passive, dsp_name),
         )
     };
+
+    let (active_enum, active_impl) = (
+        create_qualified_enum(&active, true),
+        create_active_impl(&active, dsp_name),
+    );
+    let (passive_enum, passive_impl) = (
+        create_qualified_enum(&passive, false),
+        create_passive_impl(&passive, dsp_name),
+    );
     quote::quote! {
         use strum::{Display,EnumIter,EnumCount,EnumDiscriminants,IntoStaticStr,VariantArray,VariantNames};
         use std::any::Any;

@@ -1,4 +1,7 @@
 use std::any::Any;
+// use std::hash::Hash;
+// use strum::IntoEnumIterator;
+
 pub type F32 = f32;
 pub type F64 = f64;
 
@@ -87,6 +90,7 @@ pub trait UI<T> {
 
 // traits for generated code
 pub trait UISet<D, F> {
+    //: Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
     fn set(&self, dsp: &mut D, value: F);
 }
 
@@ -95,16 +99,19 @@ pub trait UISetAny<F> {
 }
 
 pub trait UISelfSet<D> {
+    //: Clone + Send + Sync + IntoEnumIterator + 'static
     type F;
     fn set(&self, dsp: &mut D);
     fn get(&self) -> Self::F;
 }
 
 pub trait UISelfSetAny {
+    //: Clone + Send + Sync + IntoEnumIterator + 'static
     fn set(&self, dsp: &mut dyn Any);
 }
 
 pub trait UIGet<D> {
+    // :    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
     type E;
     type F;
     fn get_value(&self, dsp: &D) -> Self::F;

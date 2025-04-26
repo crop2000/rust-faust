@@ -16,7 +16,8 @@ faust-state = { path = "../../faust-state" }
 jack-utils = { path = "../jack-utils" }
 jack = "0.13"
 triple_buffer = "8.0.0"
-strum = { version = "0.27", features = ["derive"] }
+#strum = { version = "0.27", features = ["derive"] }
+strum = { path = "../../../strum/strum", features = ["derive"] }
 
 
 [build-dependencies]

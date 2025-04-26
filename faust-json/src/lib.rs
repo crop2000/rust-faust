@@ -28,10 +28,10 @@ pub struct FaustJson {
     pub size: u32,
     pub inputs: usize,
     pub outputs: usize,
-    pub author: Option<String>,
-    pub license: Option<String>,
-    pub copyright: Option<String>,
-    pub classname: Option<String>,
+    // pub author: Option<String>,
+    // pub license: Option<String>,
+    // pub copyright: Option<String>,
+    // pub classname: Option<String>,
     #[serde(default)] //allow empty list
     pub meta: Vec<Meta>,
     #[serde(default)] //allow empty list

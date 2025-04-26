@@ -75,6 +75,10 @@ impl FaustBuilder {
         self.compile_options.dsp_path = Some(DspPath::Temp(temp_path.into().into()));
     }
 
+    pub fn set_import_dir(&mut self, import_dir: impl Into<PathBuf>) {
+        self.compile_options.import_dir = Some(import_dir.into());
+    }
+
     pub fn write_xml_file(&mut self) {
         self.compile_options.xml = true;
     }

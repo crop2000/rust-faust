@@ -20,7 +20,8 @@ prettyplease =  { version = "^0.2" }
 proc-macro2 = { version = "*" }
 quote = { version = "^1" }
 syn = { version = "^2.0", default-features = false }
-strum = { version = "0.27", features = ["derive"] }
+#strum = { version = "0.27", features = ["derive"] }
+strum = { path = "../../strum/strum", features = ["derive"] }
 #dependencies for faust-ui
 faust-json =  { path = "../faust-json" , optional = true}
 serde_json = { version = "^1", optional = true }

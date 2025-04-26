@@ -10,8 +10,10 @@ default = ["default-boxed"]
 
 [dependencies]
 faust-types = { path = "../../faust-types" }
+faust-macro = { path = "../../faust-macro" }
 default-boxed = { version = "*", optional = true}
-strum = { version = "0.27", features = ["derive"] }
+#strum = { version = "0.27", features = ["derive"] }
+strum = { path = "../../../strum/strum", features = ["derive"] }
 
 [build-dependencies]
 faust-build = { path = "../../faust-build", features = ["faust-ui"] }

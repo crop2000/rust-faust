@@ -14,3 +14,6 @@ libm = ["dep:libm"]
 
 [dependencies]
 libm = { version = "0.2.1", optional = true }
+
+#strum = { version = "0.27", features = ["derive"] }
+strum = { path = "../../strum/strum", features = ["derive"] }
