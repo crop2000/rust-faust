@@ -1,3 +1,4 @@
+use std::any::Any;
 pub type F32 = f32;
 pub type F64 = f64;
 
@@ -88,10 +89,19 @@ pub trait UI<T> {
 pub trait UISet<D, F> {
     fn set(&self, dsp: &mut D, value: F);
 }
+
+pub trait UISetAny<F> {
+    fn set(&self, dsp: &mut dyn Any, value: F);
+}
+
 pub trait UISelfSet<D> {
     type F;
     fn set(&self, dsp: &mut D);
     fn get(&self) -> Self::F;
+}
+
+pub trait UISelfSetAny {
+    fn set(&self, dsp: &mut dyn Any);
 }
 
 pub trait UIGet<D> {
@@ -99,6 +109,14 @@ pub trait UIGet<D> {
     type F;
     fn get_value(&self, dsp: &D) -> Self::F;
     fn get_enum(&self, dsp: &D) -> Self::E;
+}
+
+pub trait UIGetAny {
+    // :    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+    type E;
+    type F;
+    fn get_value(&self, dsp: &dyn Any) -> Self::F;
+    fn get_enum(&self, dsp: &dyn Any) -> Self::E;
 }
 
 pub trait UIRange {

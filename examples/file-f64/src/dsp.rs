@@ -293,6 +293,7 @@ use strum::{
     Display, EnumIter, EnumCount, EnumDiscriminants, IntoStaticStr, VariantArray,
     VariantNames,
 };
+use std::any::Any;
 #[derive(
     Debug,
     Clone,
@@ -327,8 +328,26 @@ impl UISelfSet<Amplifer> for UIActiveValue {
         }
     }
 }
+impl UISelfSetAny for UIActiveValue {
+    fn set(&self, dsp: &mut dyn Any) {
+        let dsp = dsp.downcast_mut::<Amplifer>().unwrap();
+        match self {
+            UIActiveValue::Channel0Volume(value) => dsp.fVslider0 = *value,
+            UIActiveValue::Channel1Volume(value) => dsp.fVslider1 = *value,
+        }
+    }
+}
 impl UISet<Amplifer, FaustFloat> for UIActive {
     fn set(&self, dsp: &mut Amplifer, value: FaustFloat) {
+        match self {
+            UIActive::Channel0Volume => dsp.fVslider0 = value,
+            UIActive::Channel1Volume => dsp.fVslider1 = value,
+        }
+    }
+}
+impl UISetAny<FaustFloat> for UIActive {
+    fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
+        let dsp = dsp.downcast_mut::<Amplifer>().unwrap();
         match self {
             UIActive::Channel0Volume => dsp.fVslider0 = value,
             UIActive::Channel1Volume => dsp.fVslider1 = value,
@@ -386,6 +405,24 @@ impl UIGet<Amplifer> for UIPassive {
         }
     }
     fn get_enum(&self, dsp: &Amplifer) -> Self::E {
+        match self {
+            UIPassive::Channel0Level => UIPassiveValue::Channel0Level(dsp.fVbargraph0),
+            UIPassive::Channel1Level => UIPassiveValue::Channel1Level(dsp.fVbargraph1),
+        }
+    }
+}
+impl UIGetAny for UIPassive {
+    type E = UIPassiveValue;
+    type F = FaustFloat;
+    fn get_value(&self, dsp: &dyn Any) -> Self::F {
+        let dsp = dsp.downcast_ref::<Amplifer>().unwrap();
+        match self {
+            UIPassive::Channel0Level => dsp.fVbargraph0,
+            UIPassive::Channel1Level => dsp.fVbargraph1,
+        }
+    }
+    fn get_enum(&self, dsp: &dyn Any) -> Self::E {
+        let dsp = dsp.downcast_ref::<Amplifer>().unwrap();
         match self {
             UIPassive::Channel0Level => UIPassiveValue::Channel0Level(dsp.fVbargraph0),
             UIPassive::Channel1Level => UIPassiveValue::Channel1Level(dsp.fVbargraph1),

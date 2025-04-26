@@ -246,6 +246,7 @@ use strum::{
     Display, EnumIter, EnumCount, EnumDiscriminants, IntoStaticStr, VariantArray,
     VariantNames,
 };
+use std::any::Any;
 #[derive(
     Debug,
     Clone,
@@ -277,8 +278,24 @@ impl UISelfSet<Volume> for UIActiveValue {
         }
     }
 }
+impl UISelfSetAny for UIActiveValue {
+    fn set(&self, dsp: &mut dyn Any) {
+        let dsp = dsp.downcast_mut::<Volume>().unwrap();
+        match self {
+            UIActiveValue::Volume(value) => dsp.fVslider0 = *value,
+        }
+    }
+}
 impl UISet<Volume, FaustFloat> for UIActive {
     fn set(&self, dsp: &mut Volume, value: FaustFloat) {
+        match self {
+            UIActive::Volume => dsp.fVslider0 = value,
+        }
+    }
+}
+impl UISetAny<FaustFloat> for UIActive {
+    fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
+        let dsp = dsp.downcast_mut::<Volume>().unwrap();
         match self {
             UIActive::Volume => dsp.fVslider0 = value,
         }
@@ -330,6 +347,22 @@ impl UIGet<Volume> for UIPassive {
         }
     }
     fn get_enum(&self, dsp: &Volume) -> Self::E {
+        match self {
+            UIPassive::Level => UIPassiveValue::Level(dsp.fVbargraph0),
+        }
+    }
+}
+impl UIGetAny for UIPassive {
+    type E = UIPassiveValue;
+    type F = FaustFloat;
+    fn get_value(&self, dsp: &dyn Any) -> Self::F {
+        let dsp = dsp.downcast_ref::<Volume>().unwrap();
+        match self {
+            UIPassive::Level => dsp.fVbargraph0,
+        }
+    }
+    fn get_enum(&self, dsp: &dyn Any) -> Self::E {
+        let dsp = dsp.downcast_ref::<Volume>().unwrap();
         match self {
             UIPassive::Level => UIPassiveValue::Level(dsp.fVbargraph0),
         }

@@ -167,8 +167,18 @@ fn create_empty_active_impl(
                 panic!("cannot be called")
             }
         }
+        impl UISelfSetAny for #enum_name {
+            fn set(&self, dsp: &mut dyn Any) {
+                panic!("cannot be called")
+            }
+        }
         impl UISet<#dsp_name,FaustFloat> for #enum_name_discriminant {
             fn set(&self, dsp: &mut #dsp_name, value: FaustFloat) {
+                panic!("cannot be called")
+            }
+        }
+        impl UISetAny<FaustFloat> for #enum_name_discriminant {
+            fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
                 panic!("cannot be called")
             }
         }
@@ -188,6 +198,7 @@ fn create_empty_active_impl(
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn create_full_active_impl(
     infos: &[&ParamInfo],
     dsp_name: &Ident,
@@ -259,8 +270,24 @@ fn create_full_active_impl(
                 }
             }
         }
+        impl UISelfSetAny for #enum_name {
+            fn set(&self, dsp: &mut dyn Any) {
+                let dsp = dsp.downcast_mut::<#dsp_name>().unwrap();
+                match self {
+                    #(#matches_set ),*
+                }
+            }
+        }
         impl UISet<#dsp_name,FaustFloat> for #enum_name_discriminant {
             fn set(&self, dsp: &mut #dsp_name, value: FaustFloat) {
+                match self {
+                    #(#matches_discriminant ),*
+                }
+            }
+        }
+        impl UISetAny<FaustFloat> for #enum_name_discriminant {
+            fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
+                let dsp = dsp.downcast_mut::<#dsp_name>().unwrap();
                 match self {
                     #(#matches_discriminant ),*
                 }
@@ -312,6 +339,16 @@ fn create_empty_passive_impl(
                 panic!("cannot be called")
             }
             fn get_enum(&self, dsp: & #dsp_name) -> Self::E {
+                panic!("cannot be called")
+            }
+        }
+        impl UIGetAny for #enum_name_discriminant {
+            type E = #enum_name;
+            type F = FaustFloat;
+            fn get_value(&self, dsp: & dyn Any) -> Self::F {
+                panic!("cannot be called")
+            }
+            fn get_enum(&self, dsp: & dyn Any) -> Self::E {
                 panic!("cannot be called")
             }
         }
@@ -396,6 +433,22 @@ fn create_full_passive_impl(
                 }
             }
         }
+        impl UIGetAny for #enum_name_discriminant {
+            type E = #enum_name;
+            type F = FaustFloat;
+            fn get_value(&self, dsp: & dyn Any) -> Self::F {
+                let dsp = dsp.downcast_ref::<#dsp_name>().unwrap();
+                match self {
+                #(#matches_dsp_value ),*
+                }
+            }
+            fn get_enum(&self, dsp: & dyn Any) -> Self::E {
+                let dsp = dsp.downcast_ref::<#dsp_name>().unwrap();
+                match self {
+                #(#matches_enum ),*
+                }
+            }
+        }
         impl #enum_name_discriminant {
             pub fn value(&self, value: FaustFloat) -> #enum_name {
                 match self {
@@ -452,6 +505,7 @@ fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
     };
     quote::quote! {
         use strum::{Display,EnumIter,EnumCount,EnumDiscriminants,IntoStaticStr,VariantArray,VariantNames};
+        use std::any::Any;
 
         #active_enum
         #active_impl
