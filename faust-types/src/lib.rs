@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::convert::TryInto;
 use std::hash::Hash;
 use strum::IntoEnumIterator;
 
@@ -88,60 +89,118 @@ pub trait UI<T> {
     fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);
 }
 
+// trait to provide access to parameters
+// this trait is generated with the ui interace
 // traits for generated code
-pub trait UISet<D, F>:
+pub trait UISet:
     Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
 {
-    fn set(&self, dsp: &mut D, value: F);
+    type D: FaustFloatDsp;
+    fn set(&self, dsp: &mut Self::D, value: <Self::D as FaustFloatDsp>::F);
 }
 
-pub trait UISetAny<F>:
+pub trait UISetAny:
     Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
 {
-    fn set(&self, dsp: &mut dyn Any, value: F);
+    type D: FaustFloatDsp;
+    fn set(&self, dsp: &mut dyn Any, value: <Self::D as FaustFloatDsp>::F) -> bool;
 }
 
-pub trait UISelfSet<D>: Clone + Send + Sync + IntoEnumIterator + 'static {
-    type F;
-    fn set(&self, dsp: &mut D);
-    fn get(&self) -> Self::F;
+impl<T: UISet> UISetAny for T {
+    type D = T::D;
+    fn set(&self, dsp: &mut dyn Any, value: <Self::D as FaustFloatDsp>::F) -> bool {
+        if let Some(dsp) = dsp.downcast_mut::<Self::D>() {
+            self.set(dsp, value);
+            true
+        } else {
+            false
+        }
+    }
 }
 
+pub trait UISelfSet: Clone + Send + Sync + IntoEnumIterator + 'static {
+    type D: FaustFloatDsp;
+    fn set(&self, dsp: &mut Self::D);
+    fn get(&self) -> <Self::D as FaustFloatDsp>::F;
+}
+
+pub trait UIGet:
+    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
+{
+    type D: FaustFloatDsp + UIEnumsDsp;
+    fn get_value(&self, dsp: &Self::D) -> <Self::D as FaustFloatDsp>::F;
+    fn get_enum(&self, dsp: &Self::D) -> <Self::D as UIEnumsDsp>::EP;
+}
+
+// trait to describe value ranges
+// this trait is generated with the ui interace
+pub trait UIRange {
+    fn min(&self) -> f32;
+    fn max(&self) -> f32;
+    fn map(&self, f01: f32) -> f32 {
+        let min = self.min();
+        let max = self.max();
+        let range = max - min;
+        (f01 * range) + min
+    }
+}
+
+// traits to provide alternative interface to UISelfSet and UIGet
+// the impl of these traits is provided here
 pub trait UISelfSetAny: Clone + Send + Sync + IntoEnumIterator + 'static {
-    fn set(&self, dsp: &mut dyn Any);
+    type D: FaustFloatDsp;
+    fn set(&self, dsp: &mut dyn Any) -> bool;
 }
 
-pub trait UIGet<D>:
-    Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
-{
-    type E;
-    type F;
-    fn get_value(&self, dsp: &D) -> Self::F;
-    fn get_enum(&self, dsp: &D) -> Self::E;
+impl<T: UISelfSet> UISelfSetAny for T {
+    type D = T::D;
+    fn set(&self, dsp: &mut dyn Any) -> bool {
+        if let Some(dsp) = dsp.downcast_mut::<Self::D>() {
+            self.set(dsp);
+            true
+        } else {
+            false
+        }
+    }
 }
 
 pub trait UIGetAny:
     Clone + Send + Sync + Eq + Hash + Into<&'static str> + IntoEnumIterator + 'static
 {
-    type E;
-    type F;
-    fn get_value(&self, dsp: &dyn Any) -> Self::F;
-    fn get_enum(&self, dsp: &dyn Any) -> Self::E;
+    type D: FaustFloatDsp + UIEnumsDsp;
+    fn get_value(&self, dsp: &dyn Any) -> Option<<Self::D as FaustFloatDsp>::F>;
+    fn get_enum(&self, dsp: &dyn Any) -> Option<<Self::D as UIEnumsDsp>::EP>;
 }
 
-pub trait UIRange {
-    fn min(&self) -> f32;
-    fn max(&self) -> f32;
+impl<T: UIGet> UIGetAny for T {
+    type D = T::D;
+    fn get_value(&self, dsp: &dyn Any) -> Option<<Self::D as FaustFloatDsp>::F> {
+        dsp.downcast_ref::<Self::D>().map(|dsp| self.get_value(dsp))
+    }
+    fn get_enum(&self, dsp: &dyn Any) -> Option<<Self::D as UIEnumsDsp>::EP> {
+        dsp.downcast_ref::<Self::D>().map(|dsp| self.get_enum(dsp))
+    }
 }
 
-pub trait ComputeDsp: Any {
-    type F;
-    fn compute(&mut self, count: i32, inputs: &[&[Self::F]], outputs: &mut [&mut [Self::F]]);
-    fn compute_vec(&mut self, count: i32, inputs: &[Vec<Self::F>], outputs: &mut [Vec<Self::F>]);
-}
-
+// traits that describe the relation between types
+// these traits are generated with the ui interace
 pub trait FaustFloatDsp: Any + Send + Sync + 'static {
     type F;
+}
+
+pub trait UIEnumsDsp: FaustFloatDsp + Any + Send + Sync + 'static {
+    type DA: UISet<D = Self>;
+    type EA: strum::IntoDiscriminant + UISelfSet;
+    type DP: UIGet<D = Self>;
+    type EP: strum::IntoDiscriminant;
+}
+
+// traits that provide a interface to a specific functionality of a dsp
+// that match to the dsp struct depending on flags
+// these traits can be implemented via derive macros
+pub trait ComputeDsp: FaustFloatDsp + Any + Send + Sync + 'static {
+    fn compute(&mut self, count: usize, inputs: &[&[Self::F]], outputs: &mut [&mut [Self::F]]);
+    fn compute_vec(&mut self, count: usize, inputs: &[Vec<Self::F>], outputs: &mut [Vec<Self::F>]);
 }
 
 pub trait InitDsp: Any {
@@ -149,14 +208,19 @@ pub trait InitDsp: Any {
 }
 
 pub trait InPlaceDsp: FaustFloatDsp + Any {
-    fn compute(&mut self, count: i32, ios: &mut [&mut [Self::F]]);
-    fn compute_vec(&mut self, count: i32, ios: &mut [Vec<Self::F>]);
+    fn compute(&mut self, count: usize, ios: &mut [&mut [Self::F]]);
+    fn compute_vec(&mut self, count: usize, ios: &mut [Vec<Self::F>]);
 }
 
 pub trait ExternalControlDsp: FaustFloatDsp + Any + Sized {
-    type S: UISet<Self, Self::F>;
-    type V: UISelfSet<Self, F = Self::F>;
+    type S: UISet;
+    type V: UISelfSet;
     fn control(&mut self);
     fn update_controls(&mut self, controls: &[&Self::F]);
     fn update_control_values(&mut self, controls: &[&Self::V]);
+}
+
+pub trait SetDsp {
+    type E: UISelfSet<D = Self>;
+    fn set(&mut self, value: impl TryInto<Self::E>) -> bool;
 }

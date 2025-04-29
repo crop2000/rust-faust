@@ -44,12 +44,6 @@ pub fn init_dsp(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     faust_build::macro_lib::derive_init_dsp(&ident).into()
 }
 
-#[proc_macro_derive(FaustFloatDsp)]
-pub fn faustfloat_dsp(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let DeriveInput { ident, .. } = syn::parse_macro_input!(item);
-    faust_build::macro_lib::derive_faustfloat_dsp(&ident).into()
-}
-
 #[proc_macro_derive(InPlaceDsp)]
 pub fn inplace_dsp(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let DeriveInput { ident, .. } = syn::parse_macro_input!(item);

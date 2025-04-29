@@ -158,8 +158,8 @@ fn create_empty_active_impl(
     enum_name_discriminant: &Ident,
 ) -> TokenStream {
     quote! {
-        impl UISelfSet<#dsp_name> for #enum_name {
-            type F = FaustFloat;
+        impl UISelfSet for #enum_name {
+            type D = #dsp_name;
             fn set(&self, dsp: &mut #dsp_name) {
                 panic!("cannot be called")
             }
@@ -167,18 +167,9 @@ fn create_empty_active_impl(
                 panic!("cannot be called")
             }
         }
-        impl UISelfSetAny for #enum_name {
-            fn set(&self, dsp: &mut dyn Any) {
-                panic!("cannot be called")
-            }
-        }
-        impl UISet<#dsp_name,FaustFloat> for #enum_name_discriminant {
-            fn set(&self, dsp: &mut #dsp_name, value: FaustFloat) {
-                panic!("cannot be called")
-            }
-        }
-        impl UISetAny<FaustFloat> for #enum_name_discriminant {
-            fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
+        impl UISet for #enum_name_discriminant {
+            type D = #dsp_name;
+            fn set(&self, dsp: &mut #dsp_name, value: <Self::D as FaustFloatDsp>::F) {
                 panic!("cannot be called")
             }
         }
@@ -257,37 +248,22 @@ fn create_full_active_impl(
         .collect();
 
     quote! {
-        impl UISelfSet<#dsp_name> for #enum_name {
-            type F = FaustFloat;
+        impl UISelfSet for #enum_name {
+            type D = #dsp_name;
             fn set(&self, dsp: &mut #dsp_name) {
                 match self {
                     #(#matches_set ),*
                 }
             }
-            fn get(&self) -> FaustFloat {
+            fn get(&self) -> <Self::D as FaustFloatDsp>::F {
                 match self {
                     #(#matches_get ),*
                 }
             }
         }
-        impl UISelfSetAny for #enum_name {
-            fn set(&self, dsp: &mut dyn Any) {
-                let dsp = dsp.downcast_mut::<#dsp_name>().unwrap();
-                match self {
-                    #(#matches_set ),*
-                }
-            }
-        }
-        impl UISet<#dsp_name,FaustFloat> for #enum_name_discriminant {
-            fn set(&self, dsp: &mut #dsp_name, value: FaustFloat) {
-                match self {
-                    #(#matches_discriminant ),*
-                }
-            }
-        }
-        impl UISetAny<FaustFloat> for #enum_name_discriminant {
-            fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
-                let dsp = dsp.downcast_mut::<#dsp_name>().unwrap();
+        impl UISet for #enum_name_discriminant {
+            type D = #dsp_name;
+            fn set(&self, dsp: &mut #dsp_name, value: <Self::D as FaustFloatDsp>::F) {
                 match self {
                     #(#matches_discriminant ),*
                 }
@@ -332,23 +308,12 @@ fn create_empty_passive_impl(
     enum_name_discriminant: &Ident,
 ) -> TokenStream {
     quote! {
-        impl UIGet<#dsp_name> for #enum_name_discriminant {
-            type E = #enum_name;
-            type F = FaustFloat;
-            fn get_value(&self, dsp: & #dsp_name) -> Self::F {
+        impl UIGet for #enum_name_discriminant {
+            type D = #dsp_name;
+            fn get_value(&self, dsp: & Self::D) -> <Self::D as FaustFloatDsp>::F {
                 panic!("cannot be called")
             }
-            fn get_enum(&self, dsp: & #dsp_name) -> Self::E {
-                panic!("cannot be called")
-            }
-        }
-        impl UIGetAny for #enum_name_discriminant {
-            type E = #enum_name;
-            type F = FaustFloat;
-            fn get_value(&self, dsp: & dyn Any) -> Self::F {
-                panic!("cannot be called")
-            }
-            fn get_enum(&self, dsp: & dyn Any) -> Self::E {
+            fn get_enum(&self, dsp: & #dsp_name) -> <Self::D as UIEnumsDsp>::EP {
                 panic!("cannot be called")
             }
         }
@@ -419,31 +384,14 @@ fn create_full_passive_impl(
         .collect();
 
     quote! {
-        impl UIGet<#dsp_name> for #enum_name_discriminant {
-            type E = #enum_name;
-            type F = FaustFloat;
-            fn get_value(&self, dsp: & #dsp_name) -> Self::F {
+        impl UIGet for #enum_name_discriminant {
+            type D = #dsp_name;
+            fn get_value(&self, dsp: & Self::D) -> <Self::D as FaustFloatDsp>::F {
                 match self {
                 #(#matches_dsp_value ),*
                 }
             }
-            fn get_enum(&self, dsp: & #dsp_name) -> Self::E {
-                match self {
-                #(#matches_enum ),*
-                }
-            }
-        }
-        impl UIGetAny for #enum_name_discriminant {
-            type E = #enum_name;
-            type F = FaustFloat;
-            fn get_value(&self, dsp: & dyn Any) -> Self::F {
-                let dsp = dsp.downcast_ref::<#dsp_name>().unwrap();
-                match self {
-                #(#matches_dsp_value ),*
-                }
-            }
-            fn get_enum(&self, dsp: & dyn Any) -> Self::E {
-                let dsp = dsp.downcast_ref::<#dsp_name>().unwrap();
+            fn get_enum(&self, dsp: & #dsp_name) -> <Self::D as UIEnumsDsp>::EP {
                 match self {
                 #(#matches_enum ),*
                 }
@@ -483,6 +431,30 @@ fn create_passive_impl(infos: &[&ParamInfo], dsp_name: &Ident) -> TokenStream {
     }
 }
 
+fn create_dsp_traits(dsp_name: &Ident) -> TokenStream {
+    quote! {
+        impl FaustFloatDsp for #dsp_name {
+            type F = FaustFloat;
+        }
+        impl UIEnumsDsp for #dsp_name {
+            type DA = UIActive;
+            type EA = UIActiveValue;
+            type DP = UIPassive;
+            type EP = UIPassiveValue;
+        }
+        impl SetDsp for #dsp_name {
+            type E = UIActiveValue;
+            fn set(&mut self, value: impl TryInto<Self::E>) -> bool {
+                if let Ok(value) = value.try_into() {
+                    UISelfSet::set(&value, self);
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+    }
+}
 fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
     let active: Vec<&ParamInfo> = v.iter().filter(|i| i.is_active).collect();
     let passive: Vec<&ParamInfo> = v.iter().filter(|i| !i.is_active).collect();
@@ -496,10 +468,13 @@ fn create_from_paraminfo(v: &[ParamInfo], dsp_name: &Ident) -> TokenStream {
         create_qualified_enum(&passive, false),
         create_passive_impl(&passive, dsp_name),
     );
+    let dsp_traits = create_dsp_traits(dsp_name);
+
     quote::quote! {
         use strum::{Display,EnumIter,EnumCount,EnumDiscriminants,IntoStaticStr,VariantArray,VariantNames};
-        use std::any::Any;
+        use std::convert::TryInto;
 
+        #dsp_traits
         #active_enum
         #active_impl
         #passive_enum
