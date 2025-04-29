@@ -16,6 +16,7 @@ use quote::{format_ident, quote};
 pub mod enum_interface;
 pub mod meta_strings;
 pub mod struct_interface;
+pub mod utils;
 
 #[must_use]
 pub fn generate_ui_code(faust_json: &FaustJson, struct_name: impl AsRef<str>) -> TokenStream {

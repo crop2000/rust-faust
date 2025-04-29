@@ -8,8 +8,10 @@ edition = "2021"
 
 [dependencies]
 faust-json =  { path = "../faust-json" }
-
 quote = "^1.0"
 syn = "^2.0"
 proc-macro2 = "*"
 heck = "0.3"
+#strum = { version = "0.27", features = ["derive"] }
+strum = { path = "../../strum/strum", features = ["derive"] }
+triple_buffer = "8.1.0"
