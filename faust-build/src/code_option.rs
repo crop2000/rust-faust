@@ -357,7 +357,12 @@ impl CodeOption {
             {
                 panic!("{}", impl_msg)
             } //number of iterations before stopping narrowing in signal bounding.
+            "-rnt" | "--rust-no-faustdsp-trait" => Self::NoFaustDsp, //(Rust only) Don't generate FaustDsp trait implmentation.
 
+            "-rnlm" | "--rust-no-libm" => {
+                panic!("{}", impl_msg)
+            }
+            /*(Rust only) Don't generate FFI calls to libm.*/
             // Block diagram options:
             // ---------------------------------------
             "-ps" | "--postscript" => panic!("{}", impl_msg), //print block-diagram to a postscript file.

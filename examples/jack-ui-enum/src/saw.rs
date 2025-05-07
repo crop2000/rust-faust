@@ -6,8 +6,45 @@
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
+use faust_macro::ComputeDsp;
 use faust_types::*;
 pub type FaustFloat = F32;
+pub struct SawSIG0 {
+    iVec0: [i32; 2],
+    iRec0: [i32; 2],
+}
+impl SawSIG0 {
+    fn get_num_inputsSawSIG0(&self) -> i32 {
+        return 0;
+    }
+    fn get_num_outputsSawSIG0(&self) -> i32 {
+        return 1;
+    }
+    pub fn instance_initSawSIG0(&mut self, sample_rate: i32) {
+        for l0 in 0..2 {
+            self.iVec0[l0 as usize] = 0;
+        }
+        for l1 in 0..2 {
+            self.iRec0[l1 as usize] = 0;
+        }
+    }
+    pub fn fillSawSIG0(&mut self, count: i32, table: &mut [FaustFloat]) {
+        for i1 in 0..count {
+            self.iVec0[0] = 1;
+            self.iRec0[0] = (i32::wrapping_add(self.iVec0[1], self.iRec0[1])) % 65536;
+            table[i1 as usize] = F32::sin(9.58738e-05 * (self.iRec0[0]) as F32);
+            self.iVec0[1] = self.iVec0[0];
+            self.iRec0[1] = self.iRec0[0];
+        }
+    }
+}
+pub fn newSawSIG0() -> SawSIG0 {
+    SawSIG0 {
+        iVec0: [0; 2],
+        iRec0: [0; 2],
+    }
+}
+static mut ftbl0SawSIG0: [F32; 65536] = [0.0; 65536];
 mod ffi {
     use std::os::raw::c_float;
     #[cfg_attr(not(target_os = "windows"), link(name = "m"))]
@@ -22,41 +59,44 @@ fn remainder_f32(from: f32, to: f32) -> f32 {
 fn rint_f32(val: f32) -> f32 {
     unsafe { ffi::rintf(val) }
 }
-pub const FAUST_INPUTS: usize = 2;
-pub const FAUST_OUTPUTS: usize = 2;
-pub const FAUST_ACTIVES: usize = 1;
-pub const FAUST_PASSIVES: usize = 1;
+pub const FAUST_INPUTS: usize = 0;
+pub const FAUST_OUTPUTS: usize = 1;
+pub const FAUST_ACTIVES: usize = 2;
+pub const FAUST_PASSIVES: usize = 0;
 #[cfg_attr(feature = "default-boxed", derive(default_boxed::DefaultBoxed))]
+#[derive(ComputeDsp)]
 #[repr(C)]
-pub struct Volume {
+pub struct Saw {
+    iVec1: [i32; 2],
     fSampleRate: i32,
     fConst0: F32,
     fConst1: F32,
     fConst2: F32,
-    fVslider0: F32,
-    fRec0: [F32; 2],
+    fHslider0: F32,
+    fRec2: [F32; 2],
     fConst3: F32,
     fRec1: [F32; 2],
-    fVbargraph0: F32,
-    fConst4: F32,
+    fHslider1: F32,
+    fRec3: [F32; 2],
 }
-impl Volume {
-    pub fn new() -> Volume {
-        Volume {
+impl Saw {
+    pub fn new() -> Saw {
+        Saw {
+            iVec1: [0; 2],
             fSampleRate: 0,
             fConst0: 0.0,
             fConst1: 0.0,
             fConst2: 0.0,
-            fVslider0: 0.0,
-            fRec0: [0.0; 2],
+            fHslider0: 0.0,
+            fRec2: [0.0; 2],
             fConst3: 0.0,
             fRec1: [0.0; 2],
-            fVbargraph0: 0.0,
-            fConst4: 0.0,
+            fHslider1: 0.0,
+            fRec3: [0.0; 2],
         }
     }
     pub fn metadata(&self, m: &mut dyn Meta) {
-        m.declare("author", r"Franz Heinzmann");
+        m.declare("author", r"Grame");
         m.declare("basics.lib/name", r"Faust Basic Element Library");
         m.declare(
             "basics.lib/tabulateNd",
@@ -65,17 +105,19 @@ impl Volume {
         m.declare("basics.lib/version", r"1.21.0");
         m.declare(
             "compile_options",
-            r"-lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+            r"-lang rust -cm -ct 1 -cn Saw -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
         );
-        m.declare("filename", r"volume.dsp");
+        m.declare("copyright", r"(c)GRAME 2009");
+        m.declare("filename", r"saw.dsp");
         m.declare("license", r"BSD");
         m.declare("maths.lib/author", r"GRAME");
         m.declare("maths.lib/copyright", r"GRAME");
         m.declare("maths.lib/license", r"LGPL with exception");
         m.declare("maths.lib/name", r"Faust Math Library");
         m.declare("maths.lib/version", r"2.8.1");
-        m.declare("name", r"volume");
-        m.declare("options", r"[osc:on]");
+        m.declare("name", r"saw");
+        m.declare("oscillators.lib/name", r"Faust Oscillator Library");
+        m.declare("oscillators.lib/version", r"1.5.1");
         m.declare("platform.lib/name", r"Generic Platform Library");
         m.declare("platform.lib/version", r"1.3.0");
         m.declare("signals.lib/name", r"Faust Signal Routing Library");
@@ -85,16 +127,27 @@ impl Volume {
     pub fn get_sample_rate(&self) -> i32 {
         self.fSampleRate as i32
     }
-    pub fn class_init(sample_rate: i32) {}
+    pub fn class_init(sample_rate: i32) {
+        let mut sig0: SawSIG0 = newSawSIG0();
+        sig0.instance_initSawSIG0(sample_rate);
+        sig0.fillSawSIG0(65536, unsafe { &mut ftbl0SawSIG0 });
+    }
     pub fn instance_reset_params(&mut self) {
-        self.fVslider0 = 0.0;
+        self.fHslider0 = 1e+03;
+        self.fHslider1 = 0.0;
     }
     pub fn instance_clear(&mut self) {
-        for l0 in 0..2 {
-            self.fRec0[l0 as usize] = 0.0;
+        for l2 in 0..2 {
+            self.iVec1[l2 as usize] = 0;
         }
-        for l1 in 0..2 {
-            self.fRec1[l1 as usize] = 0.0;
+        for l3 in 0..2 {
+            self.fRec2[l3 as usize] = 0.0;
+        }
+        for l4 in 0..2 {
+            self.fRec1[l4 as usize] = 0.0;
+        }
+        for l5 in 0..2 {
+            self.fRec3[l5 as usize] = 0.0;
         }
     }
     pub fn instance_constants(&mut self, sample_rate: i32) {
@@ -103,7 +156,6 @@ impl Volume {
         self.fConst1 = 44.1 / self.fConst0;
         self.fConst2 = 1.0 - self.fConst1;
         self.fConst3 = 1.0 / self.fConst0;
-        self.fConst4 = (0) as F32;
     }
     pub fn instance_init(&mut self, sample_rate: i32) {
         self.instance_constants(sample_rate);
@@ -111,32 +163,33 @@ impl Volume {
         self.instance_clear();
     }
     pub fn init(&mut self, sample_rate: i32) {
-        Volume::class_init(sample_rate);
+        Saw::class_init(sample_rate);
         self.instance_init(sample_rate);
     }
     pub fn build_user_interface(&self, ui_interface: &mut dyn UI<FaustFloat>) {
         Self::build_user_interface_static(ui_interface);
     }
     pub fn build_user_interface_static(ui_interface: &mut dyn UI<FaustFloat>) {
-        ui_interface.open_vertical_box("volume");
-        ui_interface.declare(Some(ParamIndex(0)), "2", "");
-        ui_interface.declare(Some(ParamIndex(0)), "style", "dB");
-        ui_interface.declare(Some(ParamIndex(0)), "unit", "dB");
-        ui_interface.add_vertical_bargraph("level", ParamIndex(0), -6e+01, 5.0);
-        ui_interface.add_vertical_slider("volume", ParamIndex(1), 0.0, -7e+01, 4.0, 0.1);
+        ui_interface.open_vertical_box("Oscillator");
+        ui_interface.declare(Some(ParamIndex(0)), "unit", "Hz");
+        ui_interface
+            .add_horizontal_slider("freq", ParamIndex(0), 1e+03, 2e+01, 2e+03, 1.0);
+        ui_interface.declare(Some(ParamIndex(1)), "unit", "dB");
+        ui_interface
+            .add_horizontal_slider("volume", ParamIndex(1), 0.0, -5e+01, 0.0, 0.1);
         ui_interface.close_box();
     }
     pub fn get_param(&self, param: ParamIndex) -> Option<FaustFloat> {
         match param.0 {
-            0 => Some(self.fVbargraph0),
-            1 => Some(self.fVslider0),
+            0 => Some(self.fHslider0),
+            1 => Some(self.fHslider1),
             _ => None,
         }
     }
     pub fn set_param(&mut self, param: ParamIndex, value: FaustFloat) {
         match param.0 {
-            0 => self.fVbargraph0 = value,
-            1 => self.fVslider0 = value,
+            0 => self.fHslider0 = value,
+            1 => self.fHslider1 = value,
             _ => {}
         }
     }
@@ -146,38 +199,38 @@ impl Volume {
         inputs: &[impl AsRef<[FaustFloat]>],
         outputs: &mut [impl AsMut<[FaustFloat]>],
     ) {
-        let [inputs0, inputs1, ..] = inputs.as_ref() else {
-            panic!("wrong number of input buffers");
-        };
-        let inputs0 = inputs0.as_ref()[..count].iter();
-        let inputs1 = inputs1.as_ref()[..count].iter();
-        let [outputs0, outputs1, ..] = outputs.as_mut() else {
+        let [outputs0, ..] = outputs.as_mut() else {
             panic!("wrong number of output buffers");
         };
         let outputs0 = outputs0.as_mut()[..count].iter_mut();
-        let outputs1 = outputs1.as_mut()[..count].iter_mut();
-        let mut fSlow0: F32 = self.fConst1 * F32::powf(1e+01, 0.05 * self.fVslider0);
-        let zipped_iterators = inputs0.zip(inputs1).zip(outputs0).zip(outputs1);
-        for (((input0, input1), output0), output1) in zipped_iterators {
-            self.fRec0[0] = fSlow0 + self.fConst2 * self.fRec0[1];
-            let mut fTemp0: F32 = *input0;
-            let mut fTemp1: F32 = *input1;
-            self.fRec1[0] = F32::max(
-                self.fRec1[1] - self.fConst3,
-                F32::abs(0.5 * self.fRec0[0] * (fTemp0 + fTemp1)),
-            );
-            self.fVbargraph0 = 2e+01
-                * F32::log10(
-                    F32::max(1.1754944e-38, F32::max(0.00031622776, self.fRec1[0])),
-                );
-            *output0 = self.fConst4 + fTemp0 * self.fRec0[0];
-            *output1 = fTemp1 * self.fRec0[0];
-            self.fRec0[1] = self.fRec0[0];
+        let mut fSlow0: F32 = self.fConst1 * self.fHslider0;
+        let mut fSlow1: F32 = self.fConst1 * F32::powf(1e+01, 0.05 * self.fHslider1);
+        let zipped_iterators = outputs0;
+        for output0 in zipped_iterators {
+            self.iVec1[0] = 1;
+            self.fRec2[0] = fSlow0 + self.fConst2 * self.fRec2[1];
+            let mut fTemp0: F32 = (if i32::wrapping_sub(1, self.iVec1[1]) != 0 {
+                0.0
+            } else {
+                self.fRec1[1] + self.fConst3 * self.fRec2[0]
+            });
+            self.fRec1[0] = fTemp0 - F32::floor(fTemp0);
+            self.fRec3[0] = fSlow1 + self.fConst2 * self.fRec3[1];
+            *output0 = self.fRec3[0]
+                * unsafe {
+                    ftbl0SawSIG0[(std::cmp::max(
+                        0,
+                        std::cmp::min((65536.0 * self.fRec1[0]) as i32, 65535),
+                    )) as usize]
+                } + *output0;
+            self.iVec1[1] = self.iVec1[0];
+            self.fRec2[1] = self.fRec2[0];
             self.fRec1[1] = self.fRec1[0];
+            self.fRec3[1] = self.fRec3[0];
         }
     }
 }
-impl FaustDsp for Volume {
+impl FaustDsp for Saw {
     type T = FaustFloat;
     fn new() -> Self
     where
@@ -247,16 +300,16 @@ use strum::{
     VariantNames,
 };
 use std::convert::TryInto;
-impl FaustFloatDsp for Volume {
+impl FaustFloatDsp for Saw {
     type F = FaustFloat;
 }
-impl UIEnumsDsp for Volume {
+impl UIEnumsDsp for Saw {
     type DA = UIActive;
     type EA = UIActiveValue;
     type DP = UIPassive;
     type EP = UIPassiveValue;
 }
-impl SetDsp for Volume {
+impl SetDsp for Saw {
     type E = UIActiveValue;
     fn set(&mut self, value: impl TryInto<Self::E>) -> bool {
         if let Ok(value) = value.try_into() {
@@ -283,44 +336,51 @@ impl SetDsp for Volume {
 )]
 #[strum_discriminants(name(UIActive))]
 pub enum UIActiveValue {
+    Freq(FaustFloat),
     Volume(FaustFloat),
 }
 impl UISelfSet for UIActiveValue {
-    type D = Volume;
-    fn set(&self, dsp: &mut Volume) {
+    type D = Saw;
+    fn set(&self, dsp: &mut Saw) {
         match self {
-            UIActiveValue::Volume(value) => dsp.fVslider0 = *value,
+            UIActiveValue::Freq(value) => dsp.fHslider0 = *value,
+            UIActiveValue::Volume(value) => dsp.fHslider1 = *value,
         }
     }
     fn get(&self) -> <Self::D as FaustFloatDsp>::F {
         match self {
+            UIActiveValue::Freq(value) => *value,
             UIActiveValue::Volume(value) => *value,
         }
     }
 }
 impl UISet for UIActive {
-    type D = Volume;
-    fn set(&self, dsp: &mut Volume, value: <Self::D as FaustFloatDsp>::F) {
+    type D = Saw;
+    fn set(&self, dsp: &mut Saw, value: <Self::D as FaustFloatDsp>::F) {
         match self {
-            UIActive::Volume => dsp.fVslider0 = value,
+            UIActive::Freq => dsp.fHslider0 = value,
+            UIActive::Volume => dsp.fHslider1 = value,
         }
     }
 }
 impl UIRange for UIActive {
     fn min(&self) -> f32 {
         match self {
-            UIActive::Volume => -70f32,
+            UIActive::Freq => 20f32,
+            UIActive::Volume => -50f32,
         }
     }
     fn max(&self) -> f32 {
         match self {
-            UIActive::Volume => 4f32,
+            UIActive::Freq => 2000f32,
+            UIActive::Volume => 0f32,
         }
     }
 }
 impl UIActive {
     pub fn value(&self, value: FaustFloat) -> UIActiveValue {
         match self {
+            UIActive::Freq => UIActiveValue::Freq(value),
             UIActive::Volume => UIActiveValue::Volume(value),
         }
     }
@@ -340,62 +400,50 @@ impl UIActive {
     derive(Display, EnumIter, EnumCount, IntoStaticStr, VariantArray, VariantNames, Hash)
 )]
 #[strum_discriminants(name(UIPassive))]
-pub enum UIPassiveValue {
-    Level(FaustFloat),
-}
+pub enum UIPassiveValue {}
 impl UIGet for UIPassive {
-    type D = Volume;
+    type D = Saw;
     fn get_value(&self, dsp: &Self::D) -> <Self::D as FaustFloatDsp>::F {
-        match self {
-            UIPassive::Level => dsp.fVbargraph0,
-        }
+        panic!("cannot be called")
     }
-    fn get_enum(&self, dsp: &Volume) -> <Self::D as UIEnumsDsp>::EP {
-        match self {
-            UIPassive::Level => UIPassiveValue::Level(dsp.fVbargraph0),
-        }
+    fn get_enum(&self, dsp: &Saw) -> <Self::D as UIEnumsDsp>::EP {
+        panic!("cannot be called")
     }
 }
 impl UIPassive {
     pub fn value(&self, value: FaustFloat) -> UIPassiveValue {
-        match self {
-            UIPassive::Level => UIPassiveValue::Level(value),
-        }
+        panic!("cannot be called")
     }
 }
 impl UIRange for UIPassive {
     fn min(&self) -> f32 {
-        match self {
-            UIPassive::Level => -60f32,
-        }
+        panic!("cannot be called")
     }
     fn max(&self) -> f32 {
-        match self {
-            UIPassive::Level => 5f32,
-        }
+        panic!("cannot be called")
     }
 }
 #[derive(Debug)]
-pub struct DspUiVolume {
-    pub level: UIPassive,
+pub struct DspUiOscillator {
+    pub freq: UIActive,
     pub volume: UIActive,
 }
-impl DspUiVolume {
+impl DspUiOscillator {
     const fn static_ui() -> Self {
         Self {
-            level: UIPassive::Level,
+            freq: UIActive::Freq,
             volume: UIActive::Volume,
         }
     }
 }
-pub static DSP_UI: DspUiVolume = DspUiVolume::static_ui();
+pub static DSP_UI: DspUiOscillator = DspUiOscillator::static_ui();
 pub mod meta {
-    pub const AUTHOR: &'static str = "Franz Heinzmann";
-    pub const COMPILE_OPTIONS: &'static str = "-lang rust -ct 1 -cn Volume -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0";
-    pub const FILENAME: &'static str = "volume.dsp";
+    pub const AUTHOR: &'static str = "Grame";
+    pub const COMPILE_OPTIONS: &'static str = "-lang rust -cm -ct 1 -cn Saw -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0";
+    pub const COPYRIGHT: &'static str = "(c)GRAME 2009";
+    pub const FILENAME: &'static str = "saw.dsp";
     pub const LICENSE: &'static str = "BSD";
-    pub const NAME: &'static str = "volume";
-    pub const OPTIONS: &'static str = "[osc:on]";
+    pub const NAME: &'static str = "saw";
     pub const VERSION: &'static str = "1.0";
     pub mod libs {
         pub mod basics {
@@ -409,6 +457,10 @@ pub mod meta {
             pub const LICENSE: &'static str = "LGPL with exception";
             pub const NAME: &'static str = "Faust Math Library";
             pub const VERSION: &'static str = "2.8.1";
+        }
+        pub mod oscillators {
+            pub const NAME: &'static str = "Faust Oscillator Library";
+            pub const VERSION: &'static str = "1.5.1";
         }
         pub mod platform {
             pub const NAME: &'static str = "Generic Platform Library";

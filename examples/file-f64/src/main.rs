@@ -60,10 +60,16 @@ fn main() {
     );
     println!(
         "2: channel0: {}",
-        dsp2::UIPassive::Channel0Level.get_value(v[1] as &mut dyn Any)
+        dsp2::UIPassive::Channel0Level
+            .get_value(v[1] as &mut dyn Any)
+            .unwrap()
     );
     println!(
         "2: channel1: {}",
-        dsp2::DSP_UI.channel_1.level.get_value(v[1] as &mut dyn Any)
+        dsp2::DSP_UI
+            .channel_1
+            .level
+            .get_value(v[1] as &mut dyn Any)
+            .unwrap()
     );
 }

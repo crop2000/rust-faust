@@ -1,7 +1,7 @@
 {
 	"name": "volume",
 	"filename": "volume.dsp",
-	"version": "2.80.4",
+	"version": "2.80.7",
 	"compile_options": "-lang rust -ec -ct 1 -cn Amplifer -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0",
 	"library_list": ["/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/stdfaust.lib","/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/basics.lib","/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/signals.lib","/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/maths.lib","/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries/platform.lib"],
 	"include_pathnames": ["/home/olaf/projects/rust/faust4rust/faust-test/faust/libraries","/home/olaf/projects/rust/faust4rust/faust-test/faust/build/share/faust","/usr/local/share/faust","/usr/share/faust","dsp","/home/olaf/projects/rust/forks/rust-faust/examples/file-f64/dsp"],

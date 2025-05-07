@@ -6,10 +6,10 @@
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
-use faust_macro::{FaustFloatDsp, ComputeDsp, ExternalControlDsp};
+use faust_macro::{ComputeDsp, ExternalControlDsp};
 use faust_types::*;
 #[cfg_attr(feature = "default-boxed", derive(default_boxed::DefaultBoxed))]
-#[derive(FaustFloatDsp, ComputeDsp, ExternalControlDsp)]
+#[derive(ComputeDsp, ExternalControlDsp)]
 #[repr(C)]
 pub struct Amplifer {
     fSampleRate: i32,
@@ -232,7 +232,27 @@ use strum::{
     Display, EnumIter, EnumCount, EnumDiscriminants, IntoStaticStr, VariantArray,
     VariantNames,
 };
-use std::any::Any;
+use std::convert::TryInto;
+impl FaustFloatDsp for Amplifer {
+    type F = FaustFloat;
+}
+impl UIEnumsDsp for Amplifer {
+    type DA = UIActive;
+    type EA = UIActiveValue;
+    type DP = UIPassive;
+    type EP = UIPassiveValue;
+}
+impl SetDsp for Amplifer {
+    type E = UIActiveValue;
+    fn set(&mut self, value: impl TryInto<Self::E>) -> bool {
+        if let Ok(value) = value.try_into() {
+            UISelfSet::set(&value, self);
+            true
+        } else {
+            false
+        }
+    }
+}
 #[derive(
     Debug,
     Clone,
@@ -252,41 +272,24 @@ pub enum UIActiveValue {
     Channel0Volume(FaustFloat),
     Channel1Volume(FaustFloat),
 }
-impl UISelfSet<Amplifer> for UIActiveValue {
-    type F = FaustFloat;
+impl UISelfSet for UIActiveValue {
+    type D = Amplifer;
     fn set(&self, dsp: &mut Amplifer) {
         match self {
             UIActiveValue::Channel0Volume(value) => dsp.fVslider0 = *value,
             UIActiveValue::Channel1Volume(value) => dsp.fVslider1 = *value,
         }
     }
-    fn get(&self) -> FaustFloat {
+    fn get(&self) -> <Self::D as FaustFloatDsp>::F {
         match self {
             UIActiveValue::Channel0Volume(value) => *value,
             UIActiveValue::Channel1Volume(value) => *value,
         }
     }
 }
-impl UISelfSetAny for UIActiveValue {
-    fn set(&self, dsp: &mut dyn Any) {
-        let dsp = dsp.downcast_mut::<Amplifer>().unwrap();
-        match self {
-            UIActiveValue::Channel0Volume(value) => dsp.fVslider0 = *value,
-            UIActiveValue::Channel1Volume(value) => dsp.fVslider1 = *value,
-        }
-    }
-}
-impl UISet<Amplifer, FaustFloat> for UIActive {
-    fn set(&self, dsp: &mut Amplifer, value: FaustFloat) {
-        match self {
-            UIActive::Channel0Volume => dsp.fVslider0 = value,
-            UIActive::Channel1Volume => dsp.fVslider1 = value,
-        }
-    }
-}
-impl UISetAny<FaustFloat> for UIActive {
-    fn set(&self, dsp: &mut dyn Any, value: FaustFloat) {
-        let dsp = dsp.downcast_mut::<Amplifer>().unwrap();
+impl UISet for UIActive {
+    type D = Amplifer;
+    fn set(&self, dsp: &mut Amplifer, value: <Self::D as FaustFloatDsp>::F) {
         match self {
             UIActive::Channel0Volume => dsp.fVslider0 = value,
             UIActive::Channel1Volume => dsp.fVslider1 = value,
@@ -334,34 +337,15 @@ pub enum UIPassiveValue {
     Channel0Level(FaustFloat),
     Channel1Level(FaustFloat),
 }
-impl UIGet<Amplifer> for UIPassive {
-    type E = UIPassiveValue;
-    type F = FaustFloat;
-    fn get_value(&self, dsp: &Amplifer) -> Self::F {
+impl UIGet for UIPassive {
+    type D = Amplifer;
+    fn get_value(&self, dsp: &Self::D) -> <Self::D as FaustFloatDsp>::F {
         match self {
             UIPassive::Channel0Level => dsp.fVbargraph0,
             UIPassive::Channel1Level => dsp.fVbargraph1,
         }
     }
-    fn get_enum(&self, dsp: &Amplifer) -> Self::E {
-        match self {
-            UIPassive::Channel0Level => UIPassiveValue::Channel0Level(dsp.fVbargraph0),
-            UIPassive::Channel1Level => UIPassiveValue::Channel1Level(dsp.fVbargraph1),
-        }
-    }
-}
-impl UIGetAny for UIPassive {
-    type E = UIPassiveValue;
-    type F = FaustFloat;
-    fn get_value(&self, dsp: &dyn Any) -> Self::F {
-        let dsp = dsp.downcast_ref::<Amplifer>().unwrap();
-        match self {
-            UIPassive::Channel0Level => dsp.fVbargraph0,
-            UIPassive::Channel1Level => dsp.fVbargraph1,
-        }
-    }
-    fn get_enum(&self, dsp: &dyn Any) -> Self::E {
-        let dsp = dsp.downcast_ref::<Amplifer>().unwrap();
+    fn get_enum(&self, dsp: &Amplifer) -> <Self::D as UIEnumsDsp>::EP {
         match self {
             UIPassive::Channel0Level => UIPassiveValue::Channel0Level(dsp.fVbargraph0),
             UIPassive::Channel1Level => UIPassiveValue::Channel1Level(dsp.fVbargraph1),

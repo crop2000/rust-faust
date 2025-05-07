@@ -39,12 +39,7 @@ fn ui(builder: &FaustBuilder, dsp_code: &TokenStream) -> TokenStream {
     let c: String = dsp_code.to_string();
     let s = c.find(r"# [repr (C)]").expect(&c);
     let (a, b) = c.split_at(s);
-    let c = [
-        a,
-        "#[derive(FaustFloatDsp, ComputeDsp, ExternalControlDsp)]",
-        b,
-    ]
-    .concat();
+    let c = [a, "#[derive(ComputeDsp, ExternalControlDsp)]", b].concat();
     let dsp_code: TokenStream = c.parse().unwrap();
     let struct_name = builder.get_struct_name();
     let json_path = builder.get_json_path();
@@ -65,7 +60,7 @@ fn ui(builder: &FaustBuilder, dsp_code: &TokenStream) -> TokenStream {
         #![allow(unused_variables)]
         #![allow(unused_mut)]
         #![allow(non_upper_case_globals)]
-        use faust_macro::{FaustFloatDsp,ComputeDsp,ExternalControlDsp};
+        use faust_macro::{ComputeDsp,ExternalControlDsp};
         use faust_types::*;
         // #[derive(ComputeDsp)]
         #dsp_code

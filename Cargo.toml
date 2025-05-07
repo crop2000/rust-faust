@@ -12,6 +12,8 @@ members = [
   "examples/include-macro",
   "examples/minimal",
   "examples/jack-ui",
+  "examples/jack-ui-trait",
+  "examples/jack-ui-enum",
   "examples/template-file",
 ]
 resolver="2"
